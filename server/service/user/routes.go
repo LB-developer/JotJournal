@@ -34,6 +34,13 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// validate the user payload
+	if err := utils.Validate.Struct(user); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v\n", errors))
+		return
+	}
+
 	// check if the user exists
 	_, err = h.store.GetUserByEmail(user.Email)
 	if err != nil {
