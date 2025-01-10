@@ -28,6 +28,8 @@ func NewPgxPool() (*pgxpool.Pool, error) {
 	if err := connection.Ping(ctx); err != nil {
 		log.Println("Unable to ping database")
 		return nil, err
+	} else {
+		log.Println("Successfully pinged database")
 	}
 
 	return dbpool, nil
