@@ -3,7 +3,6 @@ package user
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,6 +18,14 @@ var payloadAndStatus = map[string]struct {
 	"no email": {
 		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "", Password: "123"},
 		expectedStatus: http.StatusBadRequest,
+	},
+	"invalid email": {
+		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "abc", Password: "123"},
+		expectedStatus: http.StatusBadRequest,
+	},
+	"valid email": {
+		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "valid@gmail.com", Password: "123"},
+		expectedStatus: http.StatusCreated,
 	},
 }
 
@@ -49,7 +56,7 @@ func TestUserServiceHandlers(t *testing.T) {
 type mockUserStore struct{}
 
 func (m *mockUserStore) GetUserByEmail(email string) (*types.User, error) {
-	return nil, fmt.Errorf("user not found")
+	return nil, nil
 }
 
 func (m *mockUserStore) GetUserByID(id int) (*types.User, error) {
