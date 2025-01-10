@@ -37,7 +37,7 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	// validate the user payload
 	if err := utils.Validate.Struct(user); err != nil {
 		errors := err.(validator.ValidationErrors)
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v\n", errors))
+		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload %v\n", errors))
 		return
 	}
 
