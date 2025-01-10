@@ -56,6 +56,19 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 }
 
 func (s *Store) CreateUser(user types.User) error {
+	query := `
+	INSERT INTO
+		users
+		(firstName, lastName, email, password)
+	VALUES
+		($1, $2, $3, $4)
+	`
+
+	_, err := s.db.Exec(context.Background(), query, user.FirstName, user.LastName, user.Email, user.Password)
+	if err != nil {
+		return fmt.Errorf("failed to acquire connection, err: \n%v", err)
+	}
+
 	return nil
 }
 
