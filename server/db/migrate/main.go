@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	godotenv.Load("../../.env")
+	godotenv.Load()
 
 	connectionURL, found := os.LookupEnv("DATABASE_URL")
 	if !found {
@@ -31,12 +31,21 @@ func main() {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../migrate/migrations",
+		"file://db/migrate/migrations",
 		"postgres", driver)
 	if err != nil {
 		log.Fatalf("Migrations failed %v", err)
 	}
-	if err := m.Up(); err != nil {
-		log.Fatalf("failed to apply up.sql files to db, err: %v", err)
+
+	cmd := os.Args[(len(os.Args) - 1)]
+	if cmd == "up" {
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+			log.Fatalf("failed to apply up.sql files to db, err: %v", err)
+		}
+	}
+	if cmd == "down" {
+		if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+			log.Fatalf("failed to apply up.sql files to db, err: %v", err)
+		}
 	}
 }
