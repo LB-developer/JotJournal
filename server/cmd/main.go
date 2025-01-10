@@ -14,7 +14,7 @@ func main() {
 	}
 
 	defer dbPool.Close()
-	server := api.NewAPIServer(":8080", nil)
+	server := api.NewAPIServer(":8080", dbPool)
 	err = server.Run()
 	if err != nil {
 		log.Fatal(err)
