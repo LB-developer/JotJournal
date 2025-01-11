@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -10,9 +11,26 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var DBConfig = Config()
+type Config struct {
+	DBURL                  string
+	JWTSecret              string
+	JWTExpirationInSeconds int64
+}
 
-func Config() *pgxpool.Config {
+var Envs = InitConfig()
+
+func InitConfig() *Config {
+	godotenv.Load()
+	return &Config{
+		DBURL:                  getEnv("DATABASE_URL", "postgresql://localhost:5432/defaultdb"),
+		JWTSecret:              getEnv("JWT_SECRET", "oh-no-we-are-exposed-please-dont-be-nefarious"),
+		JWTExpirationInSeconds: getEnvAsInt("JWT_EXPIRATION", 3600*24*7),
+	}
+}
+
+var DBConfig = InitDBConfig()
+
+func InitDBConfig() *pgxpool.Config {
 	godotenv.Load()
 	const (
 		defaultMaxConns          = int32(4)
@@ -23,10 +41,7 @@ func Config() *pgxpool.Config {
 		defaultConnectTimeout    = time.Second * 5
 	)
 
-	connectionURL, found := os.LookupEnv("DATABASE_URL")
-	if !found {
-		log.Fatalf("Unable to find database url from .env")
-	}
+	connectionURL := Envs.DBURL
 
 	poolConfig, err := pgxpool.ParseConfig(connectionURL)
 	if err != nil {
@@ -47,4 +62,25 @@ func Config() *pgxpool.Config {
 	}
 
 	return poolConfig
+}
+
+func getEnv(key, fallback string) string {
+	value, found := os.LookupEnv(key)
+	if !found {
+		return fallback
+	}
+
+	return value
+}
+
+func getEnvAsInt(key string, fallback int64) int64 {
+	if value, found := os.LookupEnv(key); found {
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return fallback
+		}
+		return v
+	}
+
+	return fallback
 }
