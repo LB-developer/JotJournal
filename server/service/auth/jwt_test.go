@@ -28,3 +28,15 @@ func TestEmptyJWTCreation(t *testing.T) {
 	}
 }
 
+func TestJWTSigningMethod(t *testing.T) {
+	secret := []byte("valid-secret")
+	tokenStr, _ := CreateJWT(secret, 1)
+
+	jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			t.Errorf("Expected signing method 'HMAC' got '%v'", token.Header["alg"])
+		}
+		return nil, nil
+	})
+}
+
