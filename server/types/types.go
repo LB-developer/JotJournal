@@ -29,6 +29,16 @@ type UserStore interface {
 	CreateUser(user User) error
 }
 
+type Task struct {
+	ID          int    `json:"id" faker:"oneof: 1, 2"`
+	Monthly     bool   `json:"monthly" faker:"-"`
+	Weekly      bool   `json:"weekly" faker:"-"`
+	Deadline    string `json:"deadline" faker:"timestamp"`
+	Description string `json:"description" faker:"sentence"`
+	IsCompleted bool   `json:"isCompleted" faker:"-"`
+	UserID      int    `json:"userId" faker:"oneof: 1, 2"`
+}
+
 type TaskStore interface {
 	GetTasksByUserID(userId int64) ([]Task, error)
 	UpdateTaskByTaskID(taskId int64) (Task, error)
