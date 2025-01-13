@@ -26,5 +26,3 @@ go.work.sum
 
 bin/*
 */bin
-
-Makefile
