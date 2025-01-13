@@ -28,3 +28,10 @@ type UserStore interface {
 	GetUserByID(id int) (*User, error)
 	CreateUser(user User) error
 }
+
+type TaskStore interface {
+	GetTasksByUserID(userId int64) ([]Task, error)
+	UpdateTaskByTaskID(taskId int64) (Task, error)
+	DeleteTaskByTaskID(taskId int64) error
+	CreateTask(userId int64) error
+}
