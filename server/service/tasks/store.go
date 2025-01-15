@@ -16,7 +16,6 @@ func NewStore(db *pgxpool.Pool) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetTasksByUserID(user_id int64) ([]types.Task, error) {
 func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
 	query := `
 	SELECT 
@@ -52,6 +51,7 @@ func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
 
 	return tasks, nil
 }
+
 func (s *Store) UpdateTaskByTaskID(taskId int64) (types.Task, error) {
 	return types.Task{}, nil
 }

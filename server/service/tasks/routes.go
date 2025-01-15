@@ -2,22 +2,30 @@ package tasks
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/lb-developer/jotjournal/service/auth"
 	"github.com/lb-developer/jotjournal/types"
 	"github.com/lb-developer/jotjournal/utils"
 )
 
 type Handler struct {
-	store types.TaskStore
+	taskStore types.TaskStore
+	userStore types.UserStore
 }
 
-func NewHandler(store types.TaskStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(taskStore types.TaskStore, userStore types.UserStore) *Handler {
+	return &Handler{taskStore: taskStore, userStore: userStore}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
+	router.Group(func(r chi.Router) {
+		r.Use(auth.ProtectedRoute(h.userStore))
+
+		r.Route("/tasks", func(r chi.Router) {
+			r.Get("/", h.handleGetTasksByUserId)
+		})
+	})
 }
 
 func (h *Handler) handleGetTasksByUserId(w http.ResponseWriter, req *http.Request) {
