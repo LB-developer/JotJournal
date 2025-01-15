@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lb-developer/jotjournal/service/tasks"
 	"github.com/lb-developer/jotjournal/service/user"
 )
 
@@ -29,6 +30,10 @@ func (s *APIServer) Run() error {
 	userStore := user.NewStore(s.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
+
+	taskStore := tasks.NewStore(s.db)
+	taskHandler := tasks.NewHandler(taskStore, userStore)
+	taskHandler.RegisterRoutes(subrouter)
 
 	r.Mount("/api/v1", subrouter)
 
