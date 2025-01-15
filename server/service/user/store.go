@@ -51,8 +51,37 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 	return user, nil
 }
 
-func (s *Store) GetUserByID(id int) (*types.User, error) {
-	return nil, nil
+func (s *Store) GetUserByID(userId int) (*types.User, error) {
+	query := `
+	SELECT
+			*
+	FROM
+			users
+	WHERE
+			id = $1
+	`
+	rows, err := s.db.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	user := new(types.User)
+	for rows.Next() {
+		user, err = scanRowIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Query for user failed during scan: %v\n", err)
+		return nil, err
+	}
+
+	if user.ID == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return user, nil
 }
 
 func (s *Store) CreateUser(user types.User) error {
