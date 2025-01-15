@@ -60,6 +60,28 @@ func (s *Store) DeleteTaskByTaskID(taskId int64) error {
 	return nil
 }
 
-func (s *Store) CreateTask(userId int64) error {
-	return nil
+func (s *Store) CreateTask(task types.NewTask, userId int64) (int, error) {
+	query := `
+	INSERT INTO tasks (monthly, weekly, daily, deadline, description, is_completed, user_id)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	RETURNING id
+	`
+
+	var lastInsertId int
+	err := s.db.QueryRow(
+		context.Background(),
+		query,
+		task.Monthly,
+		task.Weekly,
+		task.Daily,
+		task.Deadline,
+		task.Description,
+		false, // default is_completed
+		userId,
+	).Scan(&lastInsertId)
+	if err != nil {
+		panic(err)
+	}
+
+	return lastInsertId, nil
 }
