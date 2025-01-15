@@ -29,6 +29,14 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 }
 
 func (h *Handler) handleGetTasksByUserId(w http.ResponseWriter, req *http.Request) {
+	userID := auth.GetUserIDFromContext(req.Context())
+	tasks, err := h.taskStore.GetTasksByUserID(int64(userID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, tasks)
 }
 
 func (h *Handler) handleCreateTask(w http.ResponseWriter, req *http.Request) {
