@@ -17,7 +17,39 @@ func NewStore(db *pgxpool.Pool) *Store {
 }
 
 func (s *Store) GetTasksByUserID(user_id int64) ([]types.Task, error) {
+func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
+	query := `
+	SELECT 
+		* 
+	FROM 
+		tasks
+	WHERE
+		$1 = user_id
+	`
+
+	rows, err := s.db.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+
 	var tasks []types.Task
+	for rows.Next() {
+		var task types.Task
+		if err := rows.Scan(
+			&task.ID,
+			&task.Monthly,
+			&task.Weekly,
+			&task.Daily,
+			&task.Deadline,
+			&task.Description,
+			&task.IsCompleted,
+			&task.UserID,
+		); err != nil {
+			return nil, fmt.Errorf("Couldn't scan into tasks, error: %v", err)
+		}
+		tasks = append(tasks, task)
+	}
+
 	return tasks, nil
 }
 func (s *Store) UpdateTaskByTaskID(taskId int64) (types.Task, error) {

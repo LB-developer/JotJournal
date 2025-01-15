@@ -33,6 +33,7 @@ type Task struct {
 	ID          int    `json:"id" faker:"oneof: 1, 2"`
 	Monthly     bool   `json:"monthly" faker:"-"`
 	Weekly      bool   `json:"weekly" faker:"-"`
+	Daily       bool   `json:"daily" faker:"-"`
 	Deadline    string `json:"deadline" faker:"timestamp"`
 	Description string `json:"description" faker:"sentence"`
 	IsCompleted bool   `json:"isCompleted" faker:"-"`

@@ -47,6 +47,7 @@ func main() {
 func createTask(task *types.Task) {
 	task.Weekly = true
 	task.Monthly = false
+	task.Daily = false
 	task.IsCompleted = false
 
 	err := faker.FakeData(task)
@@ -57,13 +58,21 @@ func createTask(task *types.Task) {
 
 func insertUser(db *sql.DB, task types.Task) int {
 	query := `
-	INSERT INTO tasks (monthly, weekly, deadline, description, is_completed, user_id)
-	VALUES ($1, $2, $3, $4, $5, 1)
+	INSERT INTO tasks (monthly, weekly, daily, deadline, description, is_completed, user_id)
+	VALUES ($1, $2, $3, $4, $5, $6, 1)
 	RETURNING id
 	`
 
 	lastInsertId := 0
-	err := db.QueryRow(query, task.Monthly, task.Weekly, task.Deadline, task.Description, task.IsCompleted).Scan(&lastInsertId)
+	err := db.QueryRow(
+		query,
+		task.Monthly,
+		task.Weekly,
+		task.Daily,
+		task.Deadline,
+		task.Description,
+		task.IsCompleted,
+	).Scan(&lastInsertId)
 	if err != nil {
 		panic(err)
 	}
