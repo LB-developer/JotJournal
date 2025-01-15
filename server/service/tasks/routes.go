@@ -24,6 +24,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", h.handleGetTasksByUserId)
+			r.Put("/", h.handleCreateTask)
 		})
 	})
 }
@@ -40,6 +41,22 @@ func (h *Handler) handleGetTasksByUserId(w http.ResponseWriter, req *http.Reques
 }
 
 func (h *Handler) handleCreateTask(w http.ResponseWriter, req *http.Request) {
+	var newTask types.NewTask
+	err := utils.ParseJSON(req, &newTask)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID := auth.GetUserIDFromContext(req.Context())
+
+	taskId, err := h.taskStore.CreateTask(newTask, int64(userID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, taskId)
 }
 
 func (h *Handler) handleUpdateTaskByTaskId(w http.ResponseWriter, req *http.Request) {
