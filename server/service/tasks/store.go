@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lb-developer/jotjournal/types"
 )
@@ -57,6 +58,22 @@ func (s *Store) UpdateTaskByTaskID(taskId int64) (types.Task, error) {
 }
 
 func (s *Store) DeleteTaskByTaskID(taskId int64) error {
+	query := `
+	DELETE FROM 
+		tasks
+	WHERE
+		id = $1
+	`
+
+	deleted, err := s.db.Exec(context.Background(), query, taskId)
+	if err != nil {
+		return err
+	}
+
+	if isDeleted := pgconn.CommandTag.Delete(deleted); !isDeleted {
+		return fmt.Errorf("Couldn't confirm task was deleted from db")
+	}
+
 	return nil
 }
 
