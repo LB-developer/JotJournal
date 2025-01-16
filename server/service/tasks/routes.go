@@ -44,7 +44,7 @@ func (h *Handler) handleCreateTask(w http.ResponseWriter, req *http.Request) {
 	var newTask types.NewTask
 	err := utils.ParseJSON(req, &newTask)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
