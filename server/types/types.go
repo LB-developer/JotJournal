@@ -41,11 +41,11 @@ type Task struct {
 }
 
 type NewTask struct {
-	Monthly     bool      `json:"monthly" faker:"-"`
-	Weekly      bool      `json:"weekly" faker:"-"`
-	Daily       bool      `json:"daily" faker:"-"`
-	Deadline    time.Time `json:"deadline" faker:"timestamp"`
-	Description string    `json:"description" faker:"sentence"`
+	Monthly     bool      `json:"monthly" validate:"required" faker:"-"`
+	Weekly      bool      `json:"weekly"  validate:"required" faker:"-"`
+	Daily       bool      `json:"daily" validate:"required" faker:"-"`
+	Deadline    time.Time `json:"deadline" validate:"required" faker:"timestamp"`
+	Description string    `json:"description" validate:"required" faker:"sentence"`
 }
 
 type TaskStore interface {

@@ -1,9 +1,11 @@
 package tasks
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator"
 	"github.com/lb-developer/jotjournal/service/auth"
 	"github.com/lb-developer/jotjournal/types"
 	"github.com/lb-developer/jotjournal/utils"
@@ -45,6 +47,13 @@ func (h *Handler) handleCreateTask(w http.ResponseWriter, req *http.Request) {
 	err := utils.ParseJSON(req, &newTask)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate the new task payload
+	if err := utils.Validate.Struct(newTask); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload %v\n", errors))
 		return
 	}
 
