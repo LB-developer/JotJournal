@@ -53,11 +53,11 @@ func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
 	return tasks, nil
 }
 
-func (s *Store) UpdateTaskByTaskID(taskId int64) (types.Task, error) {
+func (s *Store) UpdateTaskByTaskID(editedTask types.Task, userId int64) (types.Task, error) {
 	return types.Task{}, nil
 }
 
-func (s *Store) DeleteTaskByTaskID(taskId int64) error {
+func (s *Store) DeleteTaskByTaskID(taskId int64, userId int64) error {
 	query := `
 	DELETE FROM 
 		tasks

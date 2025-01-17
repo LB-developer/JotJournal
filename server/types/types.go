@@ -30,14 +30,14 @@ type UserStore interface {
 }
 
 type Task struct {
-	ID          int       `json:"id" faker:"oneof: 1, 2"`
-	Monthly     bool      `json:"monthly" faker:"-"`
-	Weekly      bool      `json:"weekly" faker:"-"`
-	Daily       bool      `json:"daily" faker:"-"`
-	Deadline    time.Time `json:"deadline" faker:"timestamp"`
-	Description string    `json:"description" faker:"sentence"`
-	IsCompleted bool      `json:"isCompleted" faker:"-"`
-	UserID      int       `json:"userId" faker:"oneof: 1, 2"`
+	ID          int       `json:"id" validate:"required" faker:"oneof: 1, 2"`
+	Monthly     bool      `json:"monthly" validate:"required" faker:"-"`
+	Weekly      bool      `json:"weekly" validate:"required" faker:"-"`
+	Daily       bool      `json:"daily" validate:"required" faker:"-"`
+	Deadline    time.Time `json:"deadline" validate:"required"  faker:"timestamp"`
+	Description string    `json:"description" validate:"required" faker:"sentence"`
+	IsCompleted bool      `json:"isCompleted" validate:"required" faker:"-"`
+	UserID      int       `json:"userId" validate:"required" faker:"oneof: 1, 2"`
 }
 
 type NewTask struct {
@@ -50,7 +50,7 @@ type NewTask struct {
 
 type TaskStore interface {
 	GetTasksByUserID(userId int64) ([]Task, error)
-	UpdateTaskByTaskID(taskId int64) (Task, error)
-	DeleteTaskByTaskID(taskId int64) error
+	UpdateTaskByTaskID(editedTask Task, userId int64) (Task, error)
+	DeleteTaskByTaskID(taskId int64, userId int64) error
 	CreateTask(task NewTask, userId int64) (int, error)
 }
