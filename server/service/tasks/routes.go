@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/lb-developer/jotjournal/service/auth"
 	"github.com/lb-developer/jotjournal/types"
 	"github.com/lb-developer/jotjournal/utils"
@@ -27,6 +27,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", h.handleGetTasksByUserId)
 			r.Put("/", h.handleCreateTask)
+			r.Delete("/", h.handleDeleteTaskByTaskId)
 		})
 	})
 }
@@ -72,4 +73,19 @@ func (h *Handler) handleUpdateTaskByTaskId(w http.ResponseWriter, req *http.Requ
 }
 
 func (h *Handler) handleDeleteTaskByTaskId(w http.ResponseWriter, req *http.Request) {
+	userId := auth.GetUserIDFromContext(req.Context())
+
+	var taskId types.TaskIDToDelete
+	if err := utils.ParseJSON(req, &taskId); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err := h.taskStore.DeleteTaskByTaskID(taskId, int64(userId))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, taskId)
 }

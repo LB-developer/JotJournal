@@ -57,15 +57,17 @@ func (s *Store) UpdateTaskByTaskID(editedTask types.Task, userId int64) (types.T
 	return types.Task{}, nil
 }
 
-func (s *Store) DeleteTaskByTaskID(taskId int64, userId int64) error {
+func (s *Store) DeleteTaskByTaskID(taskId types.TaskIDToDelete, userId int64) error {
 	query := `
 	DELETE FROM 
 		tasks
 	WHERE
 		id = $1
+	AND
+		user_id = $2
 	`
 
-	deleted, err := s.db.Exec(context.Background(), query, taskId)
+	deleted, err := s.db.Exec(context.Background(), query, taskId.ID, userId)
 	if err != nil {
 		return err
 	}

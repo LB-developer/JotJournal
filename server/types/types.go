@@ -48,9 +48,13 @@ type NewTask struct {
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 }
 
+type TaskIDToDelete struct {
+	ID int
+}
+
 type TaskStore interface {
 	GetTasksByUserID(userId int64) ([]Task, error)
 	UpdateTaskByTaskID(editedTask Task, userId int64) (Task, error)
-	DeleteTaskByTaskID(taskId int64, userId int64) error
+	DeleteTaskByTaskID(taskId TaskIDToDelete, userId int64) error
 	CreateTask(task NewTask, userId int64) (int, error)
 }
