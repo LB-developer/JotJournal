@@ -31,19 +31,19 @@ type UserStore interface {
 
 type Task struct {
 	ID          int       `json:"id" validate:"required" faker:"oneof: 1, 2"`
-	Monthly     bool      `json:"monthly" validate:"required" faker:"-"`
-	Weekly      bool      `json:"weekly" validate:"required" faker:"-"`
-	Daily       bool      `json:"daily" validate:"required" faker:"-"`
+	Monthly     bool      `json:"monthly" faker:"-"`
+	Weekly      bool      `json:"weekly" faker:"-"`
+	Daily       bool      `json:"daily" faker:"-"`
 	Deadline    time.Time `json:"deadline" validate:"required"  faker:"timestamp"`
 	Description string    `json:"description" validate:"required" faker:"sentence"`
-	IsCompleted bool      `json:"isCompleted" validate:"required" faker:"-"`
+	IsCompleted bool      `json:"isCompleted" faker:"-"`
 	UserID      int       `json:"userId" validate:"required" faker:"oneof: 1, 2"`
 }
 
 type NewTask struct {
-	Monthly     bool      `json:"monthly" validate:"required" faker:"-"`
-	Weekly      bool      `json:"weekly"  validate:"required" faker:"-"`
-	Daily       bool      `json:"daily" validate:"required" faker:"-"`
+	Monthly     bool      `json:"monthly" faker:"-"`
+	Weekly      bool      `json:"weekly"  faker:"-"`
+	Daily       bool      `json:"daily" faker:"-"`
 	Deadline    time.Time `json:"deadline" validate:"required" faker:"timestamp"`
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 }
