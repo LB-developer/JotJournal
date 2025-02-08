@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"time"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/golang-migrate/migrate/v4"
@@ -41,7 +42,7 @@ func main() {
 
 	var task types.Task
 	createTask(&task)
-	insertUser(db, task)
+	insertTask(db, task)
 }
 
 func createTask(task *types.Task) {
@@ -50,13 +51,17 @@ func createTask(task *types.Task) {
 	task.Daily = false
 	task.IsCompleted = false
 
+	theTime := time.Now().Add(time.Hour * 24 * 7).Truncate(time.Second)
+
+	task.Deadline = theTime
+
 	err := faker.FakeData(task)
 	if err != nil {
 		log.Fatalf("Couldn't create fake task, error: %v\n", err)
 	}
 }
 
-func insertUser(db *sql.DB, task types.Task) int {
+func insertTask(db *sql.DB, task types.Task) int {
 	query := `
 	INSERT INTO tasks (monthly, weekly, daily, deadline, description, is_completed, user_id)
 	VALUES ($1, $2, $3, $4, $5, $6, 1)
