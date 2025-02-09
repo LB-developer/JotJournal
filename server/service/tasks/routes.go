@@ -27,6 +27,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", h.handleGetTasksByUserId)
 			r.Put("/", h.handleCreateTask)
+			r.Patch("/", h.handleUpdateTask)
 			r.Delete("/", h.handleDeleteTaskByTaskId)
 		})
 	})
@@ -69,7 +70,31 @@ func (h *Handler) handleCreateTask(w http.ResponseWriter, req *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, taskId)
 }
 
-func (h *Handler) handleUpdateTaskByTaskId(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) handleUpdateTask(w http.ResponseWriter, req *http.Request) {
+	userId := auth.GetUserIDFromContext(req.Context())
+
+	var editedTask types.Task
+	if err := utils.ParseJSON(req, &editedTask); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	editedTask.UserID = userId
+
+	// validate the edited task payload
+	if err := utils.Validate.Struct(editedTask); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload %v\n", errors))
+		return
+	}
+
+	updatedTask, err := h.taskStore.UpdateTaskByTaskID(editedTask)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, updatedTask)
 }
 
 func (h *Handler) handleDeleteTaskByTaskId(w http.ResponseWriter, req *http.Request) {
