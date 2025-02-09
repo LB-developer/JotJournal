@@ -54,6 +54,31 @@ func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
 }
 
 func (s *Store) UpdateTaskByTaskID(editedTask types.Task) (types.Task, error) {
+	query := `
+	UPDATE 
+		tasks
+	SET
+		monthly = $1,
+		weekly = $2,
+		daily = $3,
+		deadline = $4,
+		description = $5,
+		is_completed = $6
+	WHERE
+		id = $7
+	AND
+		user_id = $8
+	`
+
+	updated, err := s.db.Exec(context.Background(), query, editedTask.Monthly, editedTask.Weekly, editedTask.Daily, editedTask.Deadline, editedTask.Description, editedTask.IsCompleted, editedTask.ID, editedTask.UserID)
+	if err != nil {
+		return types.Task{}, err
+	}
+
+	if !updated.Update() {
+		return types.Task{}, fmt.Errorf("Didn't update task {%v} in database", editedTask.ID)
+	}
+
 	return editedTask, nil
 }
 
