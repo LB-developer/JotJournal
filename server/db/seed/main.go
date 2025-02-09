@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-faker/faker/v4"
@@ -40,9 +43,33 @@ func main() {
 		log.Fatalf("Seeds failed %v", err)
 	}
 
-	var task types.Task
-	createTask(&task)
-	insertTask(db, task)
+	var number int64
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("How many fake tasks to generate: ")
+
+		scanner.Scan()
+
+		text := scanner.Text()
+		if len(text) != 0 {
+			number, err = strconv.ParseInt(text, 10, 64)
+			if err != nil {
+				fmt.Println("invalid number")
+				continue
+			} else {
+				break
+			}
+		} else {
+			break
+		}
+
+	}
+
+	for i := 0; i < int(number); i++ {
+		var task types.Task
+		createTask(&task)
+		insertTask(db, task)
+	}
 }
 
 func createTask(task *types.Task) {
