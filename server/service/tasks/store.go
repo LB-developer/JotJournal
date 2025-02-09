@@ -53,8 +53,8 @@ func (s *Store) GetTasksByUserID(userId int64) ([]types.Task, error) {
 	return tasks, nil
 }
 
-func (s *Store) UpdateTaskByTaskID(editedTask types.Task, userId int64) (types.Task, error) {
-	return types.Task{}, nil
+func (s *Store) UpdateTaskByTaskID(editedTask types.Task) (types.Task, error) {
+	return editedTask, nil
 }
 
 func (s *Store) DeleteTaskByTaskID(taskId types.TaskIDToDelete, userId int64) error {
