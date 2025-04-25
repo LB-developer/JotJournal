@@ -37,7 +37,7 @@ func main() {
 	}
 
 	_, err = migrate.NewWithDatabaseInstance(
-		"file://db/seed/seeds",
+		"file://db",
 		"postgres", driver)
 	if err != nil {
 		log.Fatalf("Seeds failed %v", err)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -45,7 +46,10 @@ func main() {
 	}
 	if cmd == "down" {
 		if err := m.Down(); err != nil && err != migrate.ErrNoChange {
-			log.Fatalf("failed to apply up.sql files to db, err: %v", err)
+			log.Fatalf("failed to apply down.sql files to db, err: %v", err)
 		}
 	}
+
+	version, dirty, err := m.Version()
+	fmt.Printf("Current migration version: %v, dirty: %v, err: %v\n", version, dirty, err)
 }

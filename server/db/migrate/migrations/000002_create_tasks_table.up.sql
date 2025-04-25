@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
-    monthly boolean NOT NULL,
-    weekly boolean NOT NULL,
-    daily boolean NOT NULL,
+    monthly boolean DEFAULT FALSE NOT NULL,
+    weekly boolean DEFAULT FALSE NOT NULL,
+    daily boolean DEFAULT FALSE NOT NULL,
     deadline timestamp NOT NULL,
     description varchar(300),
     is_completed boolean DEFAULT FALSE NOT NULL,

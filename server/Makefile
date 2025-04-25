@@ -15,3 +15,7 @@ migrate-up:
 
 migrate-down:
 	@go run db/migrate/main.go down
+
+generate-task:
+	@go run db/seed/main.go
+
