@@ -25,6 +25,18 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/register", h.handleRegisterUser)
 }
 
+// @Summary Logs a user in and authenticates them with a JWT access token
+// @Description Authenticates a user from an email and password
+// @Tags User
+// @Accepts json
+// @Produce json
+// @Param Login body types.LoginUserPayload true "Login input"
+// @Success 200 {object} types.JWTToken
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 401 {object} types.ErrorResponse
+// @Failure 422 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
+// @Router /api/v1/login [post]
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var user types.LoginUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
@@ -58,10 +70,24 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userJWT := types.JWTToken{Token: token}
+
 	// successfully logged in and given token
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
+	utils.WriteJSON(w, http.StatusOK, userJWT)
 }
 
+// @Summary Registers a user in the database
+// @Description Registers a user from an email and password
+// @Tags User
+// @Accepts json
+// @Produce json
+// @Param Register body types.RegisterUserPayload true "User registration input"
+// @Success 200
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 401 {object} types.ErrorResponse
+// @Failure 422 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
+// @Router /api/v1/register [post]
 func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	var user types.RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {

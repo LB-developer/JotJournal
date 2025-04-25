@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lb-developer/jotjournal/docs"
 	"github.com/lb-developer/jotjournal/service/tasks"
@@ -13,7 +14,13 @@ import (
 )
 
 // @title JotJournal API
+
 // @version 1.0
+// @description This is the RESTful API backend for the JotJournal app. It handles task management & user data.
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath /v1
 type APIServer struct {
 	addr string
 	db   *pgxpool.Pool
@@ -29,6 +36,13 @@ func NewAPIServer(address string, db *pgxpool.Pool) *APIServer {
 func (s *APIServer) Run() error {
 	r := chi.NewRouter()
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+	}))
+
 	subrouter := chi.NewRouter()
 
 	userStore := user.NewStore(s.db)
@@ -40,6 +54,11 @@ func (s *APIServer) Run() error {
 	taskHandler.RegisterRoutes(subrouter)
 
 	r.Mount("/api/v1", subrouter)
+
+	// Register the Swagger handler
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), // The URL pointing to API definition
+	))
 
 	log.Printf("Listening on %s", s.addr)
 	return http.ListenAndServe(s.addr, r)

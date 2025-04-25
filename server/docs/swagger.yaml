@@ -1,0 +1,307 @@
+definitions:
+  types.ErrorResponse:
+    properties:
+      error:
+        example: something went wrong
+        type: string
+    type: object
+  types.JWTToken:
+    properties:
+      token:
+        example: header.payload.signature
+        type: string
+    type: object
+  types.LoginUserPayload:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  types.NewTask:
+    properties:
+      daily:
+        type: boolean
+      deadline:
+        example: "2025-05-01T00:00:00Z"
+        type: string
+      description:
+        type: string
+      monthly:
+        type: boolean
+      weekly:
+        type: boolean
+    required:
+    - deadline
+    - description
+    type: object
+  types.RegisterUserPayload:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - firstName
+    - password
+    type: object
+  types.Task:
+    properties:
+      daily:
+        type: boolean
+      deadline:
+        description: 'input example: "2006-01-02T15:04:00Z"'
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      isCompleted:
+        type: boolean
+      monthly:
+        type: boolean
+      userId:
+        type: integer
+      weekly:
+        type: boolean
+    required:
+    - deadline
+    - description
+    - id
+    - userId
+    type: object
+  types.TaskIDToDelete:
+    properties:
+      id:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/login:
+    post:
+      description: Authenticates a user from an email and password
+      parameters:
+      - description: Login input
+        in: body
+        name: Login
+        required: true
+        schema:
+          $ref: '#/definitions/types.LoginUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.JWTToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Logs a user in and authenticates them with a JWT access token
+      tags:
+      - User
+  /api/v1/register:
+    post:
+      description: Registers a user from an email and password
+      parameters:
+      - description: User registration input
+        in: body
+        name: Register
+        required: true
+        schema:
+          $ref: '#/definitions/types.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Registers a user in the database
+      tags:
+      - User
+  /api/v1/tasks:
+    delete:
+      description: Deletes a task for the authenticated user based on the task ID
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Delete task input
+        in: body
+        name: TaskID
+        required: true
+        schema:
+          $ref: '#/definitions/types.TaskIDToDelete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Deletes a task for the authenticated user
+      tags:
+      - tasks
+    get:
+      description: Retrieves all tasks associated with the authenticated user based
+        on their ID
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Task'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get tasks for the authenticated user
+      tags:
+      - tasks
+    patch:
+      description: Updates a task for the authenticated user based on the task ID
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Update task input
+        in: body
+        name: Task
+        required: true
+        schema:
+          $ref: '#/definitions/types.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Updates a task for the authenticated user
+      tags:
+      - tasks
+    put:
+      description: Creates a task for the authenticated user based on their ID
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: New task input
+        in: body
+        name: Task
+        required: true
+        schema:
+          $ref: '#/definitions/types.NewTask'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a task for the authenticated user
+      tags:
+      - tasks
+swagger: "2.0"

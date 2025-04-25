@@ -19,3 +19,5 @@ migrate-down:
 generate-task:
 	@go run db/seed/main.go
 
+swag:
+	@swag init -g cmd/main.go

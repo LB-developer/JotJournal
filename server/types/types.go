@@ -2,9 +2,17 @@ package types
 
 import "time"
 
+type ErrorResponse struct {
+	Error string `json:"error" example:"something went wrong"`
+}
+
+type JWTToken struct {
+	Token string `json:"token" example:"header.payload.signature"`
+}
+
 type RegisterUserPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
-	LastName  string `json:"lastName" validate:"required"`
+	LastName  string `json:"lastName"`
 	Email     string `json:"email" validate:"required,email"`
 	Password  string `json:"password" validate:"required,min=3,max=100"`
 }
@@ -34,7 +42,7 @@ type Task struct {
 	Monthly     bool      `json:"monthly" faker:"-"`
 	Weekly      bool      `json:"weekly" faker:"-"`
 	Daily       bool      `json:"daily" faker:"-"`
-	Deadline    time.Time `json:"deadline" validate:"required"  faker:"-"`
+	Deadline    time.Time `json:"deadline" validate:"required" example:"2006-01-02T15:04:00Z" faker:"-"`
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 	IsCompleted bool      `json:"isCompleted" faker:"-"`
 	UserID      int       `json:"userId" validate:"required" faker:"oneof: 1, 2"`
@@ -44,7 +52,7 @@ type NewTask struct {
 	Monthly     bool      `json:"monthly" faker:"-"`
 	Weekly      bool      `json:"weekly"  faker:"-"`
 	Daily       bool      `json:"daily" faker:"-"`
-	Deadline    time.Time `json:"deadline" validate:"required" faker:"timestamp"`
+	Deadline    time.Time `json:"deadline" validate:"required" example:"2025-05-01T00:00:00Z" faker:"timestamp"`
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 }
 
