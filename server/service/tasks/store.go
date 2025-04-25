@@ -97,8 +97,8 @@ func (s *Store) DeleteTaskByTaskID(taskId types.TaskIDToDelete, userId int64) er
 		return err
 	}
 
-	if isDeleted := pgconn.CommandTag.Delete(deleted); !isDeleted {
-		return fmt.Errorf("Couldn't confirm task was deleted from db")
+	if pgconn.CommandTag.RowsAffected(deleted) == 0 {
+		return fmt.Errorf("Task was not deleted from db")
 	}
 
 	return nil
