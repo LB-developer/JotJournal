@@ -6,10 +6,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lb-developer/jotjournal/docs"
 	"github.com/lb-developer/jotjournal/service/tasks"
 	"github.com/lb-developer/jotjournal/service/user"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
+// @title JotJournal API
+// @version 1.0
 type APIServer struct {
 	addr string
 	db   *pgxpool.Pool
