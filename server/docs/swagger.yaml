@@ -11,6 +11,29 @@ definitions:
         example: header.payload.signature
         type: string
     type: object
+  types.Jot:
+    properties:
+      date:
+        example: "2006-01-02T15:04:00Z"
+        type: string
+      habit:
+        example: workout
+        type: string
+      id:
+        type: integer
+      isCompleted:
+        type: boolean
+    required:
+    - date
+    - habit
+    - id
+    type: object
+  types.Jots:
+    additionalProperties:
+      items:
+        $ref: '#/definitions/types.Jot'
+      type: array
+    type: object
   types.LoginUserPayload:
     properties:
       email:
@@ -60,7 +83,7 @@ definitions:
       daily:
         type: boolean
       deadline:
-        description: 'input example: "2006-01-02T15:04:00Z"'
+        example: "2006-01-02T15:04:00Z"
         type: string
       description:
         type: string
@@ -88,6 +111,51 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/jots:
+    get:
+      description: Retrieves all jots associated with the authenticated user based
+        on their ID for the given month
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: jot search by month
+        in: query
+        name: month
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Jots'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get jots for the authenticated user
+      tags:
+      - jots
   /api/v1/login:
     post:
       description: Authenticates a user from an email and password

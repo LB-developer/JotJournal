@@ -15,6 +15,74 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/jots": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all jots associated with the authenticated user based on their ID for the given month",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jots"
+                ],
+                "summary": "Get jots for the authenticated user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT access token for authentication",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "jot search by month",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Jots"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/login": {
             "post": {
                 "description": "Authenticates a user from an email and password",
@@ -368,6 +436,39 @@ const docTemplate = `{
                 }
             }
         },
+        "types.Jot": {
+            "type": "object",
+            "required": [
+                "date",
+                "habit",
+                "id"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:00Z"
+                },
+                "habit": {
+                    "type": "string",
+                    "example": "workout"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isCompleted": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "types.Jots": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/types.Jot"
+                }
+            }
+        },
         "types.LoginUserPayload": {
             "type": "object",
             "required": [
@@ -445,8 +546,8 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "deadline": {
-                    "description": "input example: \"2006-01-02T15:04:00Z\"",
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:00Z"
                 },
                 "description": {
                     "type": "string"
