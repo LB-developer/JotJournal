@@ -56,6 +56,16 @@ type NewTask struct {
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 }
 
+type (
+	Jots map[string][]Jot
+	Jot  struct {
+		ID          int       `json:"id" validate:"required" faker:"-"`
+		Habit       string    `json:"habit" validate:"required" example:"workout" faker:"sentence"`
+		Date        time.Time `json:"date" validate:"required" example:"2006-01-02T15:04:00Z" faker:"-"`
+		IsCompleted bool      `json:"isCompleted" faker:"-"`
+	}
+)
+
 type TaskIDToDelete struct {
 	ID int
 }
@@ -65,4 +75,8 @@ type TaskStore interface {
 	UpdateTaskByTaskID(editedTask Task) (Task, error)
 	DeleteTaskByTaskID(taskId TaskIDToDelete, userId int64) error
 	CreateTask(task NewTask, userId int64) (int, error)
+}
+
+type JotStore interface {
+	GetJotsByUserID(month int, userId int64) (Jots, error)
 }
