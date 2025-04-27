@@ -83,4 +83,5 @@ type TaskStore interface {
 
 type JotStore interface {
 	GetJotsByUserID(month int, userId int64) (Jots, error)
+	UpdateJotByJotID(jot UpdateJotPayload, userId int64) error
 }
