@@ -108,6 +108,13 @@ definitions:
       id:
         type: integer
     type: object
+  types.UpdateJotPayload:
+    properties:
+      isCompleted:
+        type: boolean
+      jotID:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -154,6 +161,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get jots for the authenticated user
+      tags:
+      - jots
+    patch:
+      description: Updates a jot associated with the authenticated user based on the
+        jot ID
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: jotID and update
+        in: body
+        name: jot
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateJotPayload'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Updates jot for the authenticated user
       tags:
       - jots
   /api/v1/login:

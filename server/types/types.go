@@ -64,6 +64,10 @@ type (
 		Date        time.Time `json:"date" validate:"required" example:"2006-01-02T15:04:00Z" faker:"-"`
 		IsCompleted bool      `json:"isCompleted" faker:"-"`
 	}
+	UpdateJotPayload struct {
+		JotID       string `json:"jotID"`
+		IsCompleted bool   `json:"isCompleted"`
+	}
 )
 
 type TaskIDToDelete struct {
@@ -79,4 +83,5 @@ type TaskStore interface {
 
 type JotStore interface {
 	GetJotsByUserID(month int, userId int64) (Jots, error)
+	UpdateJotByJotID(jot UpdateJotPayload, userId int64) error
 }

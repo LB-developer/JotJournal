@@ -29,6 +29,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 
 		r.Route("/jots", func(r chi.Router) {
 			r.Get("/", h.handleGetJotsByUserID)
+			r.Patch("/", h.handleUpdateJotByJotID)
 		})
 	})
 }
@@ -70,6 +71,38 @@ func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-
 	utils.WriteJSON(w, http.StatusOK, jots)
+}
+
+// @Summary Updates jot for the authenticated user
+// @Description Updates a jot associated with the authenticated user based on the jot ID
+// @Tags jots
+// @Security BearerAuth
+// @Param Authorization header string true "JWT access token for authentication"
+// @Param jot body types.UpdateJotPayload true "jotID and update"
+// @Success 200
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 401 {object} types.ErrorResponse
+// @Failure 403 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
+// @Router /api/v1/jots [patch]
+func (h *Handler) handleUpdateJotByJotID(w http.ResponseWriter, req *http.Request) {
+	userID := auth.GetUserIDFromContext(req.Context())
+	if userID == -1 {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't find user id"))
+		return
+	}
+
+	var jotToUpdate types.UpdateJotPayload
+	if err := utils.ParseJSON(req, &jotToUpdate); err != nil {
+		utils.WriteError(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if err := h.jotStore.UpdateJotByJotID(jotToUpdate, int64(userID)); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
