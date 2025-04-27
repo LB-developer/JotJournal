@@ -25,6 +25,8 @@ func (s *Store) GetJotsByUserID(month int, userID int64) (types.Jots, error) {
 		user_id = $1
 	AND 
 		EXTRACT(MONTH FROM jots."date") = $2
+	ORDER BY
+		date
 	`
 
 	rows, err := s.db.Query(context.Background(), query, userID, month)
