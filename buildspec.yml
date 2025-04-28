@@ -13,6 +13,7 @@ phases:
     commands:
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+      - docker tag jotjournal:latest $REPOSITORY_URI:$IMAGE_TAG
   
   post_build:
     commands:
