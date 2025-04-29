@@ -1,43 +1,13 @@
 version: 0.2
 
-env:
-  variables:
-    IMAGE_TAG: ""          # may be overridden by pipeline
-    AWS_ACCOUNT_ID: ""     # set in the cloud project; filled locally with STS
-    AWS_REGION: ""         # set in the cloud project; defaulted locally
-    ENVIRONMENT: "dev"     # dev (local) or prod
-
 phases:
   pre_build:
     commands:
-      # 1. Detect environment (local vs. cloud)
-      - |
-        if [ -z "$CODEBUILD_BUILD_ID" ]; then
-          echo "Running locally"
-          : ${AWS_REGION:=us-east-1}
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-        else
-          echo "Running in AWS CodeBuild: $CODEBUILD_BUILD_ID"
-        fi
+      # Tag is first 7 chars of the commit SHA provided by CodeBuild
+      - IMAGE_TAG=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c1-7)
 
-      # 2. Compute common variables
-      - REPOSITORY_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/jotjournal
-
-      # 3. Determine image tag
-      - |
-        if [ -z "$IMAGE_TAG" ]; then
-          if [ -n "$CODEBUILD_RESOLVED_SOURCE_VERSION" ]; then
-            IMAGE_TAG=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c1-7)
-          else
-            IMAGE_TAG=$(date +%Y%m%d%H%M%S)
-          fi
-        fi
-        echo "Image tag: $IMAGE_TAG   environment: $ENVIRONMENT"
-
-      # 4. Log in to ECR
-      - |
-        aws ecr get-login-password --region "$AWS_REGION" \
-          | docker login --username AWS --password-stdin "$REPOSITORY_URI"
+      # Login to ECR
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REPOSITORY_URI"
 
   build:
     commands:
@@ -47,8 +17,7 @@ phases:
   post_build:
     commands:
       - docker push "$REPOSITORY_URI:$IMAGE_TAG"
-      - printf '[{"name":"jotjournal-app","imageUri":"%s"}]' \
-          "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
+      - printf '[{"name":"jotjournal-app","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
 
 artifacts:
   files:
