@@ -20,7 +20,9 @@ type Config struct {
 var Envs = InitConfig()
 
 func InitConfig() *Config {
-	godotenv.Load()
+	if os.Getenv("ENV") != "prod" {
+		_ = godotenv.Load()
+	}
 	return &Config{
 		DBURL:                  getEnv("DATABASE_URL", "postgresql://localhost:5432/defaultdb"),
 		JWTSecret:              getEnv("JWT_SECRET", "oh-no-we-are-exposed-please-dont-be-nefarious"),
@@ -31,7 +33,9 @@ func InitConfig() *Config {
 var DBConfig = InitDBConfig()
 
 func InitDBConfig() *pgxpool.Config {
-	godotenv.Load()
+	if os.Getenv("ENV") != "prod" {
+		_ = godotenv.Load()
+	}
 	const (
 		defaultMaxConns          = int32(4)
 		defaultMinConns          = int32(0)
@@ -55,7 +59,7 @@ func InitDBConfig() *pgxpool.Config {
 	poolConfig.HealthCheckPeriod = defaultHealthCheckPeriod
 	poolConfig.ConnConfig.ConnectTimeout = defaultConnectTimeout
 
-	poolConfig.ConnConfig.Port = 4000
+	// poolConfig.ConnConfig.Port = 4000
 
 	poolConfig.BeforeClose = func(c *pgx.Conn) {
 		log.Printf("Closed the connection pool to the database")
