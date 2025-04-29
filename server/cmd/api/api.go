@@ -58,6 +58,10 @@ func (s *APIServer) Run() error {
 	jotHandler := jots.NewHandler(jotStore, userStore)
 	jotHandler.RegisterRoutes(subrouter)
 
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	r.Mount("/api/v1", subrouter)
 
 	// Register the Swagger handler
