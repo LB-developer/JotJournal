@@ -16,7 +16,7 @@ func NewHandler() *Handler {
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Group(func(r chi.Router) {
 		r.Route("/health", func(r chi.Router) {
-			r.Get("/", h.handleGetJotsByUserID)
+			r.Get("/", h.handleHealthCheck)
 		})
 	})
 }
@@ -26,6 +26,6 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 // @Tags health
 // @Success 200
 // @Router /api/v1/health [get]
-func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) handleHealthCheck(w http.ResponseWriter, req *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, nil)
 }
