@@ -66,7 +66,7 @@ func (s *APIServer) Run() error {
 
 	// Register the Swagger handler
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), // The URL pointing to API definition
+		httpSwagger.URL("/swagger/doc.json"),
 	))
 
 	log.Printf("Listening on %s", s.addr)
