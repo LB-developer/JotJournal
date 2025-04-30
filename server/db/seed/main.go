@@ -18,7 +18,9 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	if os.Getenv("ENV") != "prod" {
+		_ = godotenv.Load()
+	}
 
 	connectionURL, found := os.LookupEnv("DATABASE_URL")
 	if !found {
@@ -36,9 +38,14 @@ func main() {
 		log.Fatalf("Couldn't get driver during seeding, error: %v", err)
 	}
 
+	dbName, found := os.LookupEnv("POSTGRES_DB")
+	if !found {
+		log.Println(dbName)
+		log.Fatalf("Unable to find db from .env")
+	}
 	_, err = migrate.NewWithDatabaseInstance(
 		"file://db",
-		"postgres", driver)
+		dbName, driver)
 	if err != nil {
 		log.Fatalf("Seeds failed %v", err)
 	}
