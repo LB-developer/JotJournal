@@ -118,6 +118,15 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/health:
+    get:
+      description: returns 200 when requested
+      responses:
+        "200":
+          description: OK
+      summary: Health check
+      tags:
+      - health
   /api/v1/jots:
     get:
       description: Retrieves all jots associated with the authenticated user based

@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lb-developer/jotjournal/docs"
+	"github.com/lb-developer/jotjournal/service/health"
 	"github.com/lb-developer/jotjournal/service/jots"
 	"github.com/lb-developer/jotjournal/service/tasks"
 	"github.com/lb-developer/jotjournal/service/user"
@@ -46,6 +47,9 @@ func (s *APIServer) Run() error {
 
 	subrouter := chi.NewRouter()
 
+	healthHandler := health.NewHandler()
+	healthHandler.RegisterRoutes(subrouter)
+
 	userStore := user.NewStore(s.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
@@ -57,10 +61,6 @@ func (s *APIServer) Run() error {
 	jotStore := jots.NewStore(s.db)
 	jotHandler := jots.NewHandler(jotStore, userStore)
 	jotHandler.RegisterRoutes(subrouter)
-
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
 
 	r.Mount("/api/v1", subrouter)
 
