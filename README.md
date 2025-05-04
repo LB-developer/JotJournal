@@ -39,16 +39,16 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 Use this if you have Go 1.23+ installed and a local Postgres instance.
 
 1. Clone the repository:  
-       git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal
+       `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
 2. Configure environment variables:  
-       cp server/.env.example server/.env
+       `cp server/.env.example server/.env`
 
 3. Apply database migrations:  
-       make -C server migrate-up
+       `make -C server migrate-up`
 
 4. Start the API server:  
-       make -C server run
+       `make -C server run`
 
 The server will listen on port 8080 of your localhost and connect to your local database.
 
@@ -58,13 +58,13 @@ The server will listen on port 8080 of your localhost and connect to your local 
 Use this if you prefer a containerized setup without installing Go or Postgres.
 
 1. Clone the repository:  
-       git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal
+       `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
 2. Configure environment variables:  
-       cp server/.env.example server/.env
+       `cp server/.env.example server/.env`
 
 3. Run everything with one command:  
-       docker compose --profile dev up --build
+       `docker compose --profile dev up --build`
 
 This will:
 - Spin up a Postgres container  
