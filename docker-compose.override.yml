@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  # Local‐only migration runner
+  migrate:
+    image: golang:1.23
+    profiles: ["dev"]
+    working_dir: /go/src/app/server/db/migrate
+    volumes:
+      - .:/go/src/app        # mount to container
+    env_file: server/.env
+    command: ["go", "run", "main.go", "up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # Wait for migrations to finish
+  jotjournal:
+    profiles: ["dev"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
