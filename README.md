@@ -21,7 +21,7 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 
 ---
 
-## Highlights & Best Practices
+## Highlights
 
 - Clean, modular Go API with focus on maintainability  
 - CI/CD pipeline:  
@@ -35,14 +35,48 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 
 ## Quick Start
 
-- Clone and run the API locally:
-```bash
-git clone https://github.com/LB-developer/JotJournal.git
-cd JotJournal/server
-make build
-make test
-make run
-```
+### Local Mode (Go & PostgreSQL)
+Use this if you have Go 1.23+ installed and a local Postgres instance.
+
+1. Clone the repository:  
+       git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal
+
+2. Configure environment variables:  
+       cp server/.env.example server/.env
+
+3. Apply database migrations:  
+       make -C server migrate-up
+
+4. Start the API server:  
+       make -C server run
+
+The server will listen on port 8080 of your localhost and connect to your local database.
+
+---
+
+### Container Mode (Docker & Docker Compose)
+Use this if you prefer a containerized setup without installing Go or Postgres.
+
+1. Clone the repository:  
+       git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal
+
+2. Configure environment variables:  
+       cp server/.env.example server/.env
+
+3. Run everything with one command:  
+       docker compose --profile dev up --build
+
+This will:
+- Spin up a Postgres container  
+- Run migrations automatically  
+- Launch the API on port 8080  
+
+---
+
+### View the API  
+Open in your browser:  
+       `http://localhost:8080/swagger/index.html#/` 
+to explore the interactive Swagger UI and test endpoints.
 
 ---
 
