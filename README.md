@@ -42,7 +42,10 @@ Use this if you have Go 1.23+ installed and a local Postgres instance.
        `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
 2. Configure environment variables:  
-       `cp server/.env.example server/.env`
+       `cp server/.env.local.example server/.env`
+
+3. Set up database:
+       `sudo -u postgres make local-database-setup`
 
 3. Apply database migrations:  
        `make -C server migrate-up`
@@ -61,7 +64,7 @@ Use this if you prefer a containerized setup without installing Go or Postgres.
        `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
 2. Configure environment variables:  
-       `cp server/.env.example server/.env`
+       `cp server/.env.docker.example server/.env`
 
 3. Run everything with one command:  
        `docker compose --profile dev up --build`

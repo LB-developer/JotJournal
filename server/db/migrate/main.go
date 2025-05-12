@@ -38,8 +38,9 @@ func main() {
 		log.Println(dbName)
 		log.Fatalf("Unable to find db from .env")
 	}
+
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		"file://db/migrate/migrations",
 		dbName, driver)
 	if err != nil {
 		log.Fatalf("Migrations failed %v", err)
