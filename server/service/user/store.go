@@ -118,3 +118,4 @@ func scanRowIntoUser(rows pgx.Rows) (*types.User, error) {
 
 	return user, nil
 }
+

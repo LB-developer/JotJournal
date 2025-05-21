@@ -31,8 +31,9 @@ var payloadAndStatus = map[string]struct {
 }
 
 func TestUserServiceHandlers(t *testing.T) {
-	mock := &mockUserStore{}
-	handler := NewHandler(mock)
+	mockUserStore := &mockUserStore{}
+	mockSessionStore := &mockSessionStore{}
+	handler := NewHandler(mockUserStore, mockSessionStore)
 
 	for name, test := range payloadAndStatus {
 		t.Run(name, func(t *testing.T) {
@@ -67,3 +68,23 @@ func (m *mockUserStore) GetUserByID(id int) (*types.User, error) {
 func (m *mockUserStore) CreateUser(user types.User) error {
 	return nil
 }
+
+type mockSessionStore struct{}
+
+func (m *mockSessionStore) CreateSession(userID int64) (string, error) {
+	return "", nil
+}
+
+func (m *mockSessionStore) ValidateSession(userID int64, refreshToken string) (bool, error) {
+	return true, nil
+}
+
+func (s *mockSessionStore) CacheSessionToken(sessionToken string, sessionID string) (string, error) {
+	return "", nil
+}
+
+func (m *mockSessionStore) ValidateSessionToken(sessionToken string) (string, error) {
+	return "", nil
+}
+
+

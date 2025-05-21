@@ -12,20 +12,22 @@ import (
 )
 
 type Handler struct {
-	jotStore  types.JotStore
-	userStore types.UserStore
+	jotStore	 types.JotStore
+	userStore	 types.UserStore
+	sessionStore types.SessionStore
 }
 
-func NewHandler(jotStore types.JotStore, userStore types.UserStore) *Handler {
+func NewHandler(jotStore types.JotStore, userStore types.UserStore, sessionStore types.SessionStore) *Handler {
 	return &Handler{
-		jotStore:  jotStore,
-		userStore: userStore,
+		jotStore:		jotStore,
+		userStore:		userStore,
+		sessionStore:	sessionStore,
 	}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Group(func(r chi.Router) {
-		r.Use(auth.ProtectedRoute(h.userStore))
+		r.Use(auth.ProtectedRoute(h.userStore, h.sessionStore))
 
 		r.Route("/jots", func(r chi.Router) {
 			r.Get("/", h.handleGetJotsByUserID)

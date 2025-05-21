@@ -14,10 +14,11 @@ import (
 
 type Handler struct {
 	store types.UserStore
+	sessionStore types.SessionStore
 }
 
-func NewHandler(store types.UserStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(store types.UserStore, sessionStore types.SessionStore) *Handler {
+	return &Handler{store: store, sessionStore: sessionStore}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
@@ -26,12 +27,12 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 }
 
 // @Summary Logs a user in and authenticates them with a JWT access token
-// @Description Authenticates a user from an email and password
+// @Description Authenticates a user from an email and password and begins a session
 // @Tags User
 // @Accepts json
 // @Produce json
 // @Param Login body types.LoginUserPayload true "Login input"
-// @Success 200 {object} types.JWTToken
+// @Success 200 {object} types.SuccessfulLoginResponse
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 401 {object} types.ErrorResponse
 // @Failure 422 {object} types.ErrorResponse
@@ -54,26 +55,45 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// check if the user exists
 	u, err := h.store.GetUserByEmail(user.Email)
 	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user not found, invalid email: '%s' or password", user.Email))
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email: '%s' or password", user.Email))
 		return
 	}
 
+	// does given pw match stored pw
 	if !auth.ComparePasswords(u.Password, []byte(user.Password)) {
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid email or password"))
 		return
 	}
 
 	secret := []byte(config.Envs.JWTSecret)
-	token, err := auth.CreateJWT(secret, u.ID)
+
+	// generate session token
+	sessionToken, err := auth.CreateJWT(secret, u.ID)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create JWT token"))
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create access token"))
 		return
 	}
 
-	userJWT := types.JWTToken{Token: token}
+	// create session in database
+	sessionID, err := h.sessionStore.CreateSession(int64(u.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, err: %s", err))
+		return
+	}
+
+	// add session to cache
+	_, err = h.sessionStore.CacheSessionToken(sessionToken, sessionID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session: %s", err))
+		return
+	}
+
+	loginSuccessData := types.SuccessfulLoginResponse{
+		SessionToken: sessionToken,
+	}
 
 	// successfully logged in and given token
-	utils.WriteJSON(w, http.StatusOK, userJWT)
+	utils.WriteJSON(w, http.StatusOK, loginSuccessData)
 }
 
 // @Summary Registers a user in the database
@@ -89,6 +109,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/register [post]
 func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
+	// unmarshal user registration payload
 	var user types.RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -127,6 +148,8 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	// successfully created user
 	utils.WriteJSON(w, http.StatusCreated, nil)
 }
+

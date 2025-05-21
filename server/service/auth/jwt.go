@@ -38,23 +38,33 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 	return tokenString, nil
 }
 
-func ProtectedRoute(store types.UserStore) func(http.Handler) http.Handler {
+func ProtectedRoute(store types.UserStore, sessionStore types.SessionStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			tokenString := getTokenFromRequest(req)
-			if tokenString == "" {
-				log.Printf("Token string was empty")
-				utils.WriteJSON(w, http.StatusUnauthorized, fmt.Errorf("Token string was empty"))
+			sessionToken := getTokenFromRequest(req)
+			if sessionToken == "" {
+				log.Printf("sessionToken was empty")
+				utils.WriteJSON(w, http.StatusUnauthorized, fmt.Errorf("sessionToken was empty"))
 				return
 			}
 
-			token, err := validateToken(tokenString)
+			// check if user has a current valid session
+			_, err := sessionStore.ValidateSessionToken(sessionToken)
+			if err != nil {
+				log.Printf("Couldn't validate user session: %v", err)
+				utils.WriteJSON(w, http.StatusForbidden, err)
+				return
+			}
+			
+			// check token from cache is valid
+			token, err := validateToken(sessionToken)
 			if err != nil {
 				log.Printf("Couldn't validate JWT token: %v", err)
 				utils.WriteJSON(w, http.StatusForbidden, err)
 				return
 			}
 
+			// extract userID from token
 			claims := token.Claims.(jwt.MapClaims)
 			userIDString := claims["userID"].(string)
 
@@ -65,6 +75,7 @@ func ProtectedRoute(store types.UserStore) func(http.Handler) http.Handler {
 				utils.WriteJSON(w, http.StatusForbidden, err)
 				return
 			}
+
 			// inject userID into context
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, UserKey, user.ID)
@@ -84,6 +95,16 @@ func validateToken(token string) (*jwt.Token, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
+
+		claims := t.Claims.(jwt.MapClaims)
+		// has the token expired
+		if expFloat, ok := claims["expiresAt"].(float64); ok {
+			expiresAt := int64(expFloat)
+			if time.Now().Unix() > expiresAt {
+				return nil, fmt.Errorf("Token expired")
+			}
+		}
+
 		return []byte(config.Envs.JWTSecret), nil
 	})
 }
@@ -96,3 +117,4 @@ func GetUserIDFromContext(ctx context.Context) int {
 
 	return userID
 }
+

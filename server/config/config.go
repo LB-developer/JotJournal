@@ -15,6 +15,7 @@ type Config struct {
 	DBURL                  string
 	JWTSecret              string
 	JWTExpirationInSeconds int64
+	RefreshExpirationInSeconds int64
 }
 
 var Envs = InitConfig()
@@ -27,6 +28,7 @@ func InitConfig() *Config {
 		DBURL:                  getEnv("DATABASE_URL", "postgresql://localhost:5432/defaultdb"),
 		JWTSecret:              getEnv("JWT_SECRET", "oh-no-we-are-exposed-please-dont-be-nefarious"),
 		JWTExpirationInSeconds: getEnvAsInt("JWT_EXPIRATION", 3600*24*7),
+		RefreshExpirationInSeconds: getEnvAsInt("REFRESH_EXPIRATION", 600),
 	}
 }
 
