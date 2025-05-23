@@ -26,6 +26,10 @@ type LoginUserPayload struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type LogoutUserPayload struct {
+	SessionToken string `json:"sessionToken" example:"header.payload.signature"`
+}
+
 type User struct {
 	ID        int       `json:"id"`
 	FirstName string    `json:"firstName"`
@@ -38,7 +42,7 @@ type User struct {
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
-	CreateUser(user User) error
+	CreateUser(user User) (int, error)
 }
 
 type Task struct {
@@ -95,6 +99,7 @@ type SessionStore interface {
 	ValidateSession(userID int64, uuid string) (bool, error)
 	CacheSessionToken(sessionToken string, sessionID string) (string, error)
 	ValidateSessionToken(sessionToken string) (string, error)
+	DestroySession(userID int64, sessionToken string) (bool, error)
 }
 
 type RefreshTokenPayload struct {

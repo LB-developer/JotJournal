@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -24,6 +25,12 @@ func NewHandler(store types.UserStore, sessionStore types.SessionStore) *Handler
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/login", h.handleLogin)
 	router.Post("/register", h.handleRegisterUser)
+
+	router.Group(func(r chi.Router) {
+		r.Use(auth.ProtectedRoute(h.store, h.sessionStore)) 
+		r.Post("/logout", h.handleLogoutUser)
+	})
+
 }
 
 // @Summary Logs a user in and authenticates them with a JWT access token
@@ -137,7 +144,7 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create new user
-	err = h.store.CreateUser(types.User{
+	id, err := h.store.CreateUser(types.User{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
@@ -150,6 +157,65 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 
 
 	// successfully created user
-	utils.WriteJSON(w, http.StatusCreated, nil)
+	// login workflow begins
+	secret := []byte(config.Envs.JWTSecret)
+
+	// generate session token
+	sessionToken, err := auth.CreateJWT(secret, id)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create access token"))
+		return
+	}
+
+	// create session in database
+	sessionID, err := h.sessionStore.CreateSession(int64(id))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, err: %s", err))
+		return
+	}
+
+	// add session to cache
+	_, err = h.sessionStore.CacheSessionToken(sessionToken, sessionID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session: %s", err))
+		return
+	}
+
+	loginSuccessData := types.SuccessfulLoginResponse{
+		SessionToken: sessionToken,
+	}
+
+	// successfully logged in and given token
+	utils.WriteJSON(w, http.StatusOK, loginSuccessData)
 }
+
+
+// @Summary Logs a user out
+// @Description Deletes sessions associated with user in cache and db
+// @Tags User
+// @Accepts json
+// @Produce json
+// @Param SessionToken body types.LogoutUserPayload true "Logout input"
+// @Success 200 
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
+// @Router /api/v1/logout [post]
+func (h *Handler) handleLogoutUser(w http.ResponseWriter, r *http.Request) {
+	// unmarshal user logout payload
+	// extract userID from token
+	sessionToken := r.Header.Get("Authorization")
+	userID := auth.GetUserIDFromContext(r.Context())
+	success, err := h.sessionStore.DestroySession(int64(userID), sessionToken)
+
+	if err != nil || !success {
+		fmt.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// successfully logged out
+	log.Printf("successfully logged out ya feel me")
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
 

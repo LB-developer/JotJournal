@@ -65,8 +65,8 @@ func (m *mockUserStore) GetUserByID(id int) (*types.User, error) {
 	return nil, nil
 }
 
-func (m *mockUserStore) CreateUser(user types.User) error {
-	return nil
+func (m *mockUserStore) CreateUser(user types.User) (int, error) {
+	return 0, nil
 }
 
 type mockSessionStore struct{}
@@ -85,6 +85,10 @@ func (s *mockSessionStore) CacheSessionToken(sessionToken string, sessionID stri
 
 func (m *mockSessionStore) ValidateSessionToken(sessionToken string) (string, error) {
 	return "", nil
+}
+
+func (m *mockSessionStore) DestroySession(userID int64, sessionToken string) (bool, error) {
+	return true, nil
 }
 
 
