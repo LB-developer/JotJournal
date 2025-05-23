@@ -1,7 +1,7 @@
-import LoginForm from "@/components/user/LoginForm";
+import DashboardPage from "./dashboard/page";
 
 export default async function Home() {
   return (
-    <LoginForm />
+    <DashboardPage />
   );
 }

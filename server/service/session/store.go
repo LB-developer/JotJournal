@@ -106,3 +106,43 @@ func (s *Store) ValidateSession(userID int64, refreshToken string) (bool, error)
 
 	return valid, nil
 }
+
+
+func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) {
+	query := `
+		DELETE FROM
+			sessions
+		WHERE
+			user_id = $1
+		AND 
+			id = $2
+	`
+
+	// get sessionID from the cache
+	sessionID, err := s.cache.Get(sessionToken)
+	if sessionID.IsNil() {
+		return false, fmt.Errorf("Session was not found in the cache")
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	// remove session from cache
+	s.cache.Del([]string{sessionToken})
+
+	// remove session from db
+	tag, err := s.db.Exec(context.Background(), query, userID, sessionID)
+
+
+	if tag.RowsAffected() != 1 {
+		return false, fmt.Errorf("Session for user %v was not deleted because, err: %s", userID, err)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	// session successfully destroyed
+	return true, nil
+}

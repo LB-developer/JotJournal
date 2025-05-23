@@ -42,7 +42,6 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 func (h *Handler) handleRefreshToken(w http.ResponseWriter, req *http.Request) {
 	userID := GetUserIDFromContext(req.Context())
 
-	// TODO: FIX
 	var refreshToken string 
 	err := utils.ParseJSON(req, &refreshToken)
 	if err != nil {

@@ -2,14 +2,18 @@
 
 import { login } from "@/app/login/actions";
 import { redirect } from "next/navigation";
-import React, { useActionState} from "react";
-import { useFormStatus } from "react-dom";
+import { useActionState} from "react";
+import { SubmitButton } from "./SubmitButton";
 
 export default function LoginForm() {
   const [state, loginAction] = useActionState(login, undefined);
 
   if (state?.type == "success") {
     redirect("/")
+  }
+
+  const handleRedirectToRegisterPage= (): void => {
+    redirect("/register")
   }
 
   return (
@@ -51,28 +55,14 @@ export default function LoginForm() {
           <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">Forgot password?</a>
         </div>
 
-        <SubmitButton />
+        <SubmitButton actionText="Login" />
       </form>
 
       <div className="flex gap-1 justify-center mt-6 text-center text-sm text-gray-600">
         <p>Don't have an account?</p>
-        <a href="#" className="text-indigo-600 hover:text-indigo-500 font-medium"><p>Sign up</p></a>
+        <span onClick={handleRedirectToRegisterPage} className="text-indigo-600 cursor-pointer hover:text-indigo-500 font-medium"><p>Sign Up</p></span>
       </div>
     </div>
   </div>
   )
-}
-
-function SubmitButton() {
-    const { pending } = useFormStatus()
-
-    return (
-        <button 
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors"
-          disabled={pending} 
-          type="submit"
-        >
-          {pending ? "Submitting" : "Sign in"}
-        </button>
-    )
 }

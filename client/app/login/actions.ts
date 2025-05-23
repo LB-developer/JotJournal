@@ -1,7 +1,8 @@
 'use server'
 
-import { setSessionToken } from "@/lib/auth";
+import { getSessionToken, setSessionToken } from "@/lib/auth";
 import { ApiError, ApiSuccess, LoginToken} from "@/types/apiTypes";
+import { redirect } from "next/navigation";
 
 const baseURL = "http://localhost:8080/api/v1/"
 
@@ -16,12 +17,12 @@ export async function login(prevState: any, formData: FormData): Promise<ApiSucc
       headers: { 'Content-Type': 'application/json' }
     });
 
-    const data: LoginToken | ApiError = await res.json()
-    if ("error" in data) {
-        return { type: "error", error: data.error  }
+    const json: LoginToken | ApiError = await res.json()
+    if ("error" in json) {
+        throw new Error(json.error)
     }
     
-    await setSessionToken(data)
+    await setSessionToken(json)
     
     return { type: "success" }
     
@@ -32,4 +33,31 @@ export async function login(prevState: any, formData: FormData): Promise<ApiSucc
   }
 }
 
-export async function logout() {}
+export async function logout(): Promise<void> {
+  const sessionToken = await getSessionToken()
+
+  try {
+    if (!sessionToken) {
+      throw new Error("sessionToken was empty when attempting to logout")
+    }
+
+    const res = await fetch(baseURL + "logout", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': sessionToken
+      }
+    });
+
+    if (!res.ok) {
+        const error: ApiError = await res.json()
+        console.error(error)
+        throw new Error(error.error)
+    }
+
+  } catch (e) {
+    console.error(e)
+  }
+
+  redirect("/login")
+}
