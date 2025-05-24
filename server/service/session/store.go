@@ -13,7 +13,7 @@ import (
 )
 
 type Store struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
 	cache api.GlideClientCommands
 }
 
@@ -40,10 +40,9 @@ func (s *Store) ValidateSessionToken(refreshToken string) (string, error) {
 	return res.Value(), nil
 }
 
-
 func (s *Store) CreateSession(userID int64) (string, error) {
 	expiration := time.Now().Add(time.Second * time.Duration(config.Envs.RefreshExpirationInSeconds))
-	
+
 	query := `
 		INSERT INTO 
 			sessions (user_id, expires_at, created_at)
@@ -60,7 +59,7 @@ func (s *Store) CreateSession(userID int64) (string, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	var sessionID string 
+	var sessionID string
 
 	err = tx.QueryRow(ctx, query, userID, expiration).Scan(&sessionID)
 	if err != nil {
@@ -71,7 +70,7 @@ func (s *Store) CreateSession(userID int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Transaction failed, err: %s", err)
 	}
-	
+
 	return sessionID, nil
 }
 
@@ -102,11 +101,10 @@ func (s *Store) ValidateSession(userID int64, refreshToken string) (bool, error)
 			return false, nil // no matching session
 		}
 		return false, err // other scan error
-	}	
+	}
 
 	return valid, nil
 }
-
 
 func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) {
 	query := `
@@ -129,11 +127,13 @@ func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) 
 	}
 
 	// remove session from cache
-	s.cache.Del([]string{sessionToken})
+	_, err = s.cache.Del([]string{sessionToken})
+	if err != nil {
+		return false, err
+	}
 
 	// remove session from db
-	tag, err := s.db.Exec(context.Background(), query, userID, sessionID)
-
+	tag, err := s.db.Exec(context.Background(), query, userID, sessionID.Value())
 
 	if tag.RowsAffected() != 1 {
 		return false, fmt.Errorf("Session for user %v was not deleted because, err: %s", userID, err)

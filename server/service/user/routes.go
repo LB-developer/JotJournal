@@ -14,7 +14,7 @@ import (
 )
 
 type Handler struct {
-	store types.UserStore
+	store        types.UserStore
 	sessionStore types.SessionStore
 }
 
@@ -27,7 +27,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/register", h.handleRegisterUser)
 
 	router.Group(func(r chi.Router) {
-		r.Use(auth.ProtectedRoute(h.store, h.sessionStore)) 
+		r.Use(auth.ProtectedRoute(h.store, h.sessionStore))
 		r.Post("/logout", h.handleLogoutUser)
 	})
 
@@ -48,26 +48,30 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var user types.LoginUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("bad login payload"))
 		return
 	}
 
 	// validate the user payload
 	if err := utils.Validate.Struct(user); err != nil {
 		errors := err.(validator.ValidationErrors)
-		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload %v\n", errors))
+		log.Printf("%s", errors)
+		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload"))
 		return
 	}
 
 	// check if the user exists
 	u, err := h.store.GetUserByEmail(user.Email)
 	if err != nil {
+		log.Printf("%s", err)
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email: '%s' or password", user.Email))
 		return
 	}
 
 	// does given pw match stored pw
 	if !auth.ComparePasswords(u.Password, []byte(user.Password)) {
+		log.Printf("%s", err)
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid email or password"))
 		return
 	}
@@ -77,21 +81,24 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// generate session token
 	sessionToken, err := auth.CreateJWT(secret, u.ID)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create access token"))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session token, check server logs for errors"))
 		return
 	}
 
 	// create session in database
 	sessionID, err := h.sessionStore.CreateSession(int64(u.ID))
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, err: %s", err))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, check server logs for errors"))
 		return
 	}
 
 	// add session to cache
 	_, err = h.sessionStore.CacheSessionToken(sessionToken, sessionID)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session: %s", err))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session, check server logs for errors"))
 		return
 	}
 
@@ -126,7 +133,8 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	// validate the user payload
 	if err := utils.Validate.Struct(user); err != nil {
 		errors := err.(validator.ValidationErrors)
-		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload %v\n", errors))
+		log.Printf("%s", errors)
+		utils.WriteError(w, http.StatusUnprocessableEntity, fmt.Errorf("invalid payload"))
 		return
 	}
 
@@ -155,7 +163,6 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	// successfully created user
 	// login workflow begins
 	secret := []byte(config.Envs.JWTSecret)
@@ -163,21 +170,24 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	// generate session token
 	sessionToken, err := auth.CreateJWT(secret, id)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create access token"))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create access token, check server logs for errors"))
 		return
 	}
 
 	// create session in database
 	sessionID, err := h.sessionStore.CreateSession(int64(id))
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, err: %s", err))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't create session, check server logs for errors"))
 		return
 	}
 
 	// add session to cache
 	_, err = h.sessionStore.CacheSessionToken(sessionToken, sessionID)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session: %s", err))
+		log.Printf("%s", err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't cache session, check server logs for errors"))
 		return
 	}
 
@@ -189,14 +199,13 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, loginSuccessData)
 }
 
-
 // @Summary Logs a user out
 // @Description Deletes sessions associated with user in cache and db
 // @Tags User
 // @Accepts json
 // @Produce json
 // @Param SessionToken body types.LogoutUserPayload true "Logout input"
-// @Success 200 
+// @Success 204
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/logout [post]
@@ -209,13 +218,10 @@ func (h *Handler) handleLogoutUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil || !success {
 		fmt.Printf("%s", err)
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to logout user, check server logs for errors"))
 		return
 	}
 
 	// successfully logged out
-	log.Printf("successfully logged out ya feel me")
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusNoContent, nil)
 }
-
-
