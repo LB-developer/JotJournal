@@ -2,36 +2,50 @@
 import { ApiError, LoginToken } from "@/types/apiTypes";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { NextRequest } from "next/server";
 
-export async function fetchWithAuth<T>(req: NextRequest): Promise<T> {
+export async function fetchWithAuth<T>(
+  url: string,
+  method: "GET" | "PATCH",
+  headers?: Headers,
+  reqBody?: any
+): Promise<T | undefined> {
   const sessionToken = await getSessionToken()
+
   if (!sessionToken) {
     redirect("/login")
   }
-  req.headers.set("Authorization", sessionToken)
+
+  if (headers) {
+    headers.set("Authorization", sessionToken)
+  }
 
   for (let retries = 0; retries < 3; retries++) {
     try {
-      const res = await fetch(req)
+        const res = await fetch(url, 
+        {
+          method: method,
+          headers: {"Authorization": sessionToken},
+          body: JSON.stringify(reqBody)
+        })
+      
 
       if (res.status === 401) {
         const error = await refreshSessionToken()
         throw new Error(error)
       }
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error)
+      // no content expected
+      if (res.status === 204) {
+        return undefined
       }
 
-      const json = await res.json()
-      return json as T
+      const body = await res.json() as T
+      return body
 
     } catch (e) {
       console.warn("Auth check did not pass")
       if (retries >= 2) {
-        console.error(e)
+        console.error(JSON.stringify(e))
         redirect("/login")
       }
 
@@ -50,7 +64,7 @@ export default async function refreshSessionToken(): Promise<string> {
   }
 
   const res = await fetch(baseURL + "refresh", {
-      method: 'POST',
+      method: '',
       headers: {
           'Content-Type': 'application/json',
           "Authorization": sessionToken

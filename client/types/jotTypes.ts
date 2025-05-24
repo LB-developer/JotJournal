@@ -8,6 +8,6 @@ export interface Jot {
 }
 
 export interface UpdateJotPayload {
-  id: number
+  jotID: number
   isCompleted: boolean
 }

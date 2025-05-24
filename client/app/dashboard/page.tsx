@@ -1,13 +1,14 @@
 import LogoutButton from "@/components/user/LogoutButton";
-import { getJots } from "../jots/actions";
+import JotContainer from "./JotContainer";
+import getCurrentMonth from "@/lib/date/getCurrentMonth";
 
-export default async function DashboardPage() {
-  // TODO: make page ("4") dynamic
-  await getJots("4")
+export default async function DashboardPage({ searchParams }: { searchParams: { month?: string }}) {
+  const params = await searchParams
+  const month = params.month ?? getCurrentMonth()
 
   return (
     <>
-      <p>User is logged in and at the dashboard</p>
+      <JotContainer month={month} />
       <LogoutButton />
     </>
   );

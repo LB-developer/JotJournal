@@ -1,7 +1,5 @@
-import DashboardPage from "./dashboard/page";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  return (
-    <DashboardPage />
-  );
+export default async function HomePage() {
+  redirect("/dashboard")
 }

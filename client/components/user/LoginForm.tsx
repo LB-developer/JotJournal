@@ -4,12 +4,13 @@ import { login } from "@/app/login/actions";
 import { redirect } from "next/navigation";
 import { useActionState} from "react";
 import { SubmitButton } from "./SubmitButton";
+import getCurrentMonth from "@/lib/date/getCurrentMonth";
 
 export default function LoginForm() {
   const [state, loginAction] = useActionState(login, undefined);
 
   if (state?.type == "success") {
-    redirect("/")
+    redirect("/dashboard?month=" + getCurrentMonth())
   }
 
   const handleRedirectToRegisterPage= (): void => {

@@ -1,13 +1,40 @@
 'use client'
-import { JotCollection } from "@/types/jotTypes";
+import { Jot, JotCollection } from "@/types/jotTypes";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
 
 interface Props {
   jotCollection: JotCollection;
 }
 
 export default function JotDisplay({ jotCollection }: Props) {
-  const [jots, _] = useState<JotCollection>(jotCollection)
+  const router = useRouter()
+  const [jots, setJots] = useState<JotCollection>(jotCollection)
+
+  const handleUpdateJot = async (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    jotToUpdate: Jot
+  ): Promise<void> => {
+
+    e.preventDefault()
+    const jotID = jotToUpdate.id
+    const habit = jotToUpdate.habit
+    const changedCompletion = !jotToUpdate.isCompleted
+
+    await fetch("/api/jots", 
+      { 
+        method: "PATCH",
+        body: JSON.stringify({ jotID, isCompleted: changedCompletion })
+      })
+
+    router.refresh() // invalidate cache
+
+    const updatedJots = {...jots}
+    const length = updatedJots[habit].length - 1
+    updateJot(updatedJots[habit], 0, length, jotID)
+    setJots(updatedJots)
+  }
 
   return (
     <section className="flex flex-row gap-4 p-4">
@@ -24,6 +51,7 @@ export default function JotDisplay({ jotCollection }: Props) {
                     : 'bg-gray-200 border-gray-400'
                 }`}
                 title={jot.date}
+                onClick={(e) => handleUpdateJot(e, jot)}
               />
             ))}
           </div>
@@ -31,4 +59,22 @@ export default function JotDisplay({ jotCollection }: Props) {
       ))}
     </section>
   );
+}
+
+
+function updateJot(haystack: Jot[], left:number, right:number, target: number) {
+  let mid = left + Math.floor((right - left) / 2)
+
+  if (haystack[mid].id === target) {
+    // change the current jot
+    haystack[mid].isCompleted = !haystack[mid].isCompleted
+    return
+
+  } else if (haystack[mid].id < target) {
+    left = mid + 1
+  } else if (haystack[mid].id > target) {
+    right = mid
+  }
+
+  updateJot(haystack, left, right, target)
 }

@@ -82,7 +82,7 @@ func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request
 // @Security BearerAuth
 // @Param Authorization header string true "JWT access token for authentication"
 // @Param jot body types.UpdateJotPayload true "jotID and update"
-// @Success 200
+// @Success 204
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 401 {object} types.ErrorResponse
 // @Failure 403 {object} types.ErrorResponse
@@ -106,5 +106,5 @@ func (h *Handler) handleUpdateJotByJotID(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusNoContent, nil)
 }

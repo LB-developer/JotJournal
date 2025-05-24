@@ -1,14 +1,16 @@
-import JotDisplay from "@/components/jots/JotDisplay";
-import LogoutButton from "@/components/user/LogoutButton";
+'use server'
 import { getJots } from "../jots/actions";
+import dynamic from "next/dynamic";
 
-export default async function JotContainer() {
-  const jots = await getJots("4")
+const JotDisplay = dynamic(() => import('@/components/jots/JotDisplay'));
+
+export default async function JotContainer({ month }: { month: string }) {
+  const jots = await getJots(month)
+
 
   return (
     <>
       {jots && <JotDisplay jotCollection={jots} />}
-      <LogoutButton />
     </>
   );
 }

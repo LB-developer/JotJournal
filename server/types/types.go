@@ -73,7 +73,7 @@ type (
 		IsCompleted bool      `json:"isCompleted" faker:"-"`
 	}
 	UpdateJotPayload struct {
-		JotID       string `json:"jotID"`
+		JotID       int    `json:"jotID"`
 		IsCompleted bool   `json:"isCompleted"`
 	}
 )
