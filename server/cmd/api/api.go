@@ -26,16 +26,15 @@ import (
 
 // @BasePath /v1
 type APIServer struct {
-	addr string
-	db   *pgxpool.Pool
+	addr  string
+	db    *pgxpool.Pool
 	cache api.GlideClientCommands
-
 }
 
 func NewAPIServer(address string, db *pgxpool.Pool, cache api.GlideClientCommands) *APIServer {
 	return &APIServer{
-		addr: address,
-		db:   db,
+		addr:  address,
+		db:    db,
 		cache: cache,
 	}
 }

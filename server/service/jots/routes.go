@@ -12,16 +12,16 @@ import (
 )
 
 type Handler struct {
-	jotStore	 types.JotStore
-	userStore	 types.UserStore
+	jotStore     types.JotStore
+	userStore    types.UserStore
 	sessionStore types.SessionStore
 }
 
 func NewHandler(jotStore types.JotStore, userStore types.UserStore, sessionStore types.SessionStore) *Handler {
 	return &Handler{
-		jotStore:		jotStore,
-		userStore:		userStore,
-		sessionStore:	sessionStore,
+		jotStore:     jotStore,
+		userStore:    userStore,
+		sessionStore: sessionStore,
 	}
 }
 
