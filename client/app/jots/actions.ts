@@ -1,20 +1,23 @@
 import { fetchWithAuth } from "@/lib/auth";
+import { API_BASE_URL } from "@/lib/config/config";
 import { JotCollection } from "@/types/jotTypes";
 
-const baseURL = "http://localhost:8080/api/v1/jots"
+const baseURL = `${API_BASE_URL}/jots`;
 export async function getJots(month: string) {
-    const params = new URLSearchParams()
-    params.set("month", month)
+    const params = new URLSearchParams();
+    params.set("month", month);
 
     if (month == "") {
-        throw new Error("No month included in parameters") 
+        throw new Error("No month included in parameters");
     }
 
-    const url = baseURL + "?" + params
+    const url = baseURL + "?" + params;
 
-    const data: JotCollection | undefined = await fetchWithAuth<JotCollection>(url, "GET")
+    const data: JotCollection | undefined = await fetchWithAuth<JotCollection>(
+        url,
+        "GET",
+    );
     if (data != undefined) {
-        return data
+        return data;
     }
 }
-

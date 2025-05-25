@@ -1,10 +1,11 @@
 "use server";
 
 import { getSessionToken, setSessionToken } from "@/lib/auth";
+import { API_BASE_URL } from "@/lib/config/config";
 import { ApiError, ApiSuccess, LoginSuccess } from "@/types/apiTypes";
 import { redirect } from "next/navigation";
 
-const baseURL = "http://localhost:8080/api/v1/";
+const baseURL = API_BASE_URL;
 
 export async function login(
     prevState: any,

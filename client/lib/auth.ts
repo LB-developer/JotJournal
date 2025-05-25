@@ -1,10 +1,10 @@
 "server-only";
+import { API_BASE_URL } from "./config/config";
 import { ApiError, SessionToken } from "@/types/apiTypes";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const baseURL = "http://localhost:8080/api/v1/";
-
+const baseURL = API_BASE_URL;
 export async function fetchWithAuth<T>(
     url: string,
     method: "GET" | "PATCH",

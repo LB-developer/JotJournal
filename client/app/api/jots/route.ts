@@ -1,8 +1,9 @@
 import { JotCollection, UpdateJotPayload } from "@/types/jotTypes";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithAuth } from "@/lib/auth";
+import { API_BASE_URL } from "@/lib/config/config";
 
-const baseURL = "http://localhost:8080/api/v1/jots";
+const baseURL = `${API_BASE_URL}/jots`;
 export async function GET(req: NextRequest) {
     const method = "GET";
 
