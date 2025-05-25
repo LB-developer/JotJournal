@@ -11,7 +11,8 @@ type ErrorResponse struct {
 }
 
 type SuccessfulLoginResponse struct {
-	SessionToken string `json:"sessionToken" example:"header.payload.signature"`
+	SessionToken string       `json:"sessionToken" example:"header.payload.signature"`
+	User         UserResponse `json:"user"`
 }
 
 type RegisterUserPayload struct {
@@ -37,6 +38,13 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type UserResponse struct {
+	ID        int    `json:"ID"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
 }
 
 type UserStore interface {
@@ -73,8 +81,8 @@ type (
 		IsCompleted bool      `json:"isCompleted" faker:"-"`
 	}
 	UpdateJotPayload struct {
-		JotID       int    `json:"jotID"`
-		IsCompleted bool   `json:"isCompleted"`
+		JotID       int  `json:"jotID"`
+		IsCompleted bool `json:"isCompleted"`
 	}
 )
 
@@ -100,12 +108,13 @@ type SessionStore interface {
 	CacheSessionToken(sessionToken string, sessionID string) (string, error)
 	ValidateSessionToken(sessionToken string) (string, error)
 	DestroySession(userID int64, sessionToken string) (bool, error)
+	ClearSessionFromCache(sessionToken string) (bool, error)
 }
 
 type RefreshTokenPayload struct {
 	RefreshToken uuid.UUID `json:"refreshToken" example:"abc-123-xyz-123"`
 }
 
-type AccessTokenResponse struct {
-	AccessToken string `json:"accessToken" example:"header.payload.signature"`
+type SessionTokenResponse struct {
+	SessionToken string `json:"sessionToken" example:"header.payload.signature"`
 }

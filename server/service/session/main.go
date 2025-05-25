@@ -9,7 +9,6 @@ import (
 func NewCache() (api.GlideClientCommands, error) {
 	host := "localhost"
 	port := 6379
-	fmt.Println("START ER UP")
 
 	config := api.NewGlideClientConfiguration().
 		WithAddress(&api.NodeAddress{Host: host, Port: port})

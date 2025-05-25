@@ -41,7 +41,7 @@ func (s *Store) ValidateSessionToken(refreshToken string) (string, error) {
 }
 
 func (s *Store) CreateSession(userID int64) (string, error) {
-	expiration := time.Now().Add(time.Second * time.Duration(config.Envs.RefreshExpirationInSeconds))
+	expiration := time.Now().Add(time.Second * time.Duration(config.Envs.SessionExpirationInSeconds))
 
 	query := `
 		INSERT INTO 
@@ -74,8 +74,7 @@ func (s *Store) CreateSession(userID int64) (string, error) {
 	return sessionID, nil
 }
 
-func (s *Store) ValidateSession(userID int64, refreshToken string) (bool, error) {
-
+func (s *Store) ValidateSession(userID int64, sessionToken string) (bool, error) {
 	// does a current session exist that
 	// > matches the given refreshToken && userID
 	// > has not been rotated
@@ -85,25 +84,31 @@ func (s *Store) ValidateSession(userID int64, refreshToken string) (bool, error)
 		FROM 
 			sessions
 		WHERE
-			user_id = $
+			user_id = $1
 		AND
-			refresh_token = $
+			id = $2
 		AND 
 			rotated = false
 	`
 
-	row := s.db.QueryRow(context.Background(), query, userID, refreshToken)
+	uuid, err := s.cache.Get(sessionToken)
+	if err != nil || uuid.IsNil() == true {
+		fmt.Printf("No record of session in cache")
+		return false, err
+	}
 
 	var valid bool
-	err := row.Scan(&valid)
+	err = s.db.QueryRow(context.Background(), query, userID, uuid.Value()).Scan(&valid)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil // no matching session
+			fmt.Printf("No matching session in the database for userID:%v", userID)
+			return false, err // no matching session
 		}
+		fmt.Printf("%s", err)
 		return false, err // other scan error
 	}
 
-	return valid, nil
+	return true, nil
 }
 
 func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) {
@@ -126,11 +131,7 @@ func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) 
 		return false, err
 	}
 
-	// remove session from cache
-	_, err = s.cache.Del([]string{sessionToken})
-	if err != nil {
-		return false, err
-	}
+	s.ClearSessionFromCache(sessionToken)
 
 	// remove session from db
 	tag, err := s.db.Exec(context.Background(), query, userID, sessionID.Value())
@@ -144,5 +145,14 @@ func (s *Store) DestroySession(userID int64, sessionToken string) (bool, error) 
 	}
 
 	// session successfully destroyed
+	return true, nil
+}
+
+func (s *Store) ClearSessionFromCache(sessionToken string) (bool, error) {
+	_, err := s.cache.Del([]string{sessionToken})
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }

@@ -19,6 +19,11 @@ export async function GET(req: NextRequest) {
     // fetch jots for user by month
     const res = await fetchWithAuth<JotCollection>(url, method);
 
+    const tags: string[] = [];
+    for (const key of Object.keys(tags)) {
+        tags.push(`userid-${key}`);
+    }
+
     return NextResponse.json(res);
 }
 
@@ -27,7 +32,7 @@ export async function PATCH(req: NextRequest) {
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
 
-    // revalidateTag("tags here")
+    // TODO: revalidateTag("tags here");
 
     let body: UpdateJotPayload;
     try {
@@ -50,7 +55,8 @@ export async function PATCH(req: NextRequest) {
         // update the specified jot
         await fetchWithAuth<undefined>(baseURL, method, headers, body);
         return new NextResponse(undefined, { status: 204 });
-    } catch {
+    } catch (e) {
+        console.error(e);
         return new NextResponse(undefined, { status: 500 });
     }
 }

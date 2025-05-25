@@ -1,15 +1,16 @@
 'use client'
+import { useAuth } from "@/context/AuthContext";
+import { updateJotCompletion } from "@/lib/jots/updateJotCompletion";
 import { Jot, JotCollection } from "@/types/jotTypes";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useState } from "react";
-
 
 interface Props {
   jotCollection: JotCollection;
 }
 
 export default function JotDisplay({ jotCollection }: Props) {
-  const router = useRouter()
+  const context = useAuth()
   const [jots, setJots] = useState<JotCollection>(jotCollection)
 
   const handleUpdateJot = async (
@@ -18,21 +19,35 @@ export default function JotDisplay({ jotCollection }: Props) {
   ): Promise<void> => {
 
     e.preventDefault()
+
+    if (!context.user) {
+      console.error("No user found in context, redirecting...")
+      redirect("/login")
+    }
+
     const jotID = jotToUpdate.id
     const habit = jotToUpdate.habit
     const changedCompletion = !jotToUpdate.isCompleted
 
-    await fetch("/api/jots", 
-      { 
+    // TODO: create tag for caching
+    //   structure: ["id-habit1", "id-habit2", etc...] for as many habits that are in jots
+    //
+    // const tags: string[] = []
+    // for (const key of Object.keys(jots)) {
+    //   tags.push(`tag-${context.user.ID}-${key}`);
+    // }
+
+    // update jot in db
+    await fetch(`/api/jots/`,
+      {
         method: "PATCH",
-        body: JSON.stringify({ jotID, isCompleted: changedCompletion })
+        body: JSON.stringify({ jotID, isCompleted: changedCompletion }),
       })
 
-    router.refresh() // invalidate cache
-
-    const updatedJots = {...jots}
+    // update jot locally
+    const updatedJots = { ...jots }
     const length = updatedJots[habit].length - 1
-    updateJot(updatedJots[habit], 0, length, jotID)
+    updateJotCompletion(updatedJots[habit], 0, length, jotID)
     setJots(updatedJots)
   }
 
@@ -45,11 +60,10 @@ export default function JotDisplay({ jotCollection }: Props) {
             {jots.map((jot) => (
               <div
                 key={jot.id}
-                className={`w-5 h-5 rounded-sm border ${
-                  jot.isCompleted
-                    ? 'bg-green-500 border-green-700'
-                    : 'bg-gray-200 border-gray-400'
-                }`}
+                className={`w-5 h-5 rounded-sm border ${jot.isCompleted
+                  ? 'bg-green-500 border-green-700'
+                  : 'bg-gray-200 border-gray-400'
+                  }`}
                 title={jot.date}
                 onClick={(e) => handleUpdateJot(e, jot)}
               />
@@ -62,19 +76,7 @@ export default function JotDisplay({ jotCollection }: Props) {
 }
 
 
-function updateJot(haystack: Jot[], left:number, right:number, target: number) {
-  let mid = left + Math.floor((right - left) / 2)
 
-  if (haystack[mid].id === target) {
-    // change the current jot
-    haystack[mid].isCompleted = !haystack[mid].isCompleted
-    return
 
-  } else if (haystack[mid].id < target) {
-    left = mid + 1
-  } else if (haystack[mid].id > target) {
-    right = mid
-  }
 
-  updateJot(haystack, left, right, target)
-}
+

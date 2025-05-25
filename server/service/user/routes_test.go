@@ -91,4 +91,6 @@ func (m *mockSessionStore) DestroySession(userID int64, sessionToken string) (bo
 	return true, nil
 }
 
-
+func (m *mockSessionStore) ClearSessionFromCache(sessionToken string) (bool, error) {
+	return true, nil
+}

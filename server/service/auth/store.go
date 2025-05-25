@@ -45,7 +45,7 @@ func (s *Store) CreateSession(userID int64) (uuid.UUID, error) {
 	if err := tx.Commit(context.Background()); err != nil {
 		return uuid.UUID{}, fmt.Errorf("Transaction failed")
 	}
-	
+
 	return u1, nil
 }
 
@@ -76,8 +76,7 @@ func (s *Store) ValidateSession(userID int64, refreshToken uuid.UUID) (bool, err
 			return false, nil // no matching session
 		}
 		return false, err // other scan error
-	}	
+	}
 
 	return valid, nil
 }
-

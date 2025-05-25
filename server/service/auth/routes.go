@@ -2,30 +2,27 @@ package auth
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/lb-developer/jotjournal/config"
 	"github.com/lb-developer/jotjournal/types"
 	"github.com/lb-developer/jotjournal/utils"
 )
 
 type Handler struct {
-	userStore types.UserStore
-	authStore types.SessionStore
+	sessionStore types.SessionStore
 }
 
-func NewHandler(authStore types.SessionStore) *Handler {
+func NewHandler(sessionStore types.SessionStore) *Handler {
 	return &Handler{
-		authStore: authStore,
+		sessionStore: sessionStore,
 	}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
-	router.Group(func(r chi.Router) {
-		r.Route("/auth", func(r chi.Router) {
-			r.Get("/refresh", h.handleRefreshToken)
-		})
-	})
+	router.Get("/refresh", h.handleRefreshToken)
 }
 
 // @Summary Renews access tokens
@@ -34,34 +31,51 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 // @Accepts json
 // @Produce json
 // @Param RefreshToken body types.RefreshTokenPayload true "refresh token"
-// @Success 200
+// @Success 200 {object} types.AccessTokenResponse
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 401 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/auth/refresh [post]
 func (h *Handler) handleRefreshToken(w http.ResponseWriter, req *http.Request) {
-	userID := GetUserIDFromContext(req.Context())
+	oldSessionToken := req.Header.Get("Authorization")
 
-	var refreshToken string 
-	err := utils.ParseJSON(req, &refreshToken)
-	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
-		return
-	}
+	// get userID from token claims
+	token, _ := ValidateToken(oldSessionToken)
+	claims := token.Claims.(jwt.MapClaims)
+	userIDString := claims["userID"].(string)
+	userID, _ := strconv.Atoi(userIDString)
 
-	valid, err := h.authStore.ValidateSession(int64(userID), refreshToken)
+	// is long-term session in database
+	valid, err := h.sessionStore.ValidateSession(int64(userID), oldSessionToken)
 	if !valid {
-		utils.WriteError(w, http.StatusUnauthorized, err)	
+		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
 
-	// the refresh token is valid
-	token, err := CreateJWT([]byte(config.Envs.JWTSecret), userID)
+	// get sessionID to set in cache
+	sessionID, err := h.sessionStore.ValidateSessionToken(oldSessionToken)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)	
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// create new short session token
+	newToken, err := CreateJWT([]byte(config.Envs.SessionSecret), userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// clear old short session
+	h.sessionStore.ClearSessionFromCache(oldSessionToken)
+
+	// cache new short session
+	_, err = h.sessionStore.CacheSessionToken(newToken, sessionID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// return new access token
-	utils.WriteJSON(w, http.StatusOK, types.AccessTokenResponse{ AccessToken: token})
+	utils.WriteJSON(w, http.StatusOK, types.SessionTokenResponse{SessionToken: newToken})
 }

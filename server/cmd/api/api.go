@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lb-developer/jotjournal/docs"
+	"github.com/lb-developer/jotjournal/service/auth"
 	"github.com/lb-developer/jotjournal/service/health"
 	"github.com/lb-developer/jotjournal/service/jots"
 	"github.com/lb-developer/jotjournal/service/session"
@@ -62,10 +63,12 @@ func (s *APIServer) Run() error {
 	userHandler := user.NewHandler(userStore, sessionStore)
 	taskHandler := tasks.NewHandler(taskStore, userStore, sessionStore)
 	jotHandler := jots.NewHandler(jotStore, userStore, sessionStore)
+	authHandler := auth.NewHandler(sessionStore)
 
 	jotHandler.RegisterRoutes(subrouter)
 	taskHandler.RegisterRoutes(subrouter)
 	userHandler.RegisterRoutes(subrouter)
+	authHandler.RegisterRoutes(subrouter)
 
 	r.Mount("/api/v1", subrouter)
 

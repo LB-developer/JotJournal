@@ -76,7 +76,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret := []byte(config.Envs.JWTSecret)
+	secret := []byte(config.Envs.SessionSecret)
 
 	// generate session token
 	sessionToken, err := auth.CreateJWT(secret, u.ID)
@@ -104,6 +104,12 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	loginSuccessData := types.SuccessfulLoginResponse{
 		SessionToken: sessionToken,
+		User: types.UserResponse{
+			ID:        u.ID,
+			FirstName: u.FirstName,
+			LastName:  u.LastName,
+			Email:     u.Email,
+		},
 	}
 
 	// successfully logged in and given token
@@ -165,7 +171,7 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	// successfully created user
 	// login workflow begins
-	secret := []byte(config.Envs.JWTSecret)
+	secret := []byte(config.Envs.SessionSecret)
 
 	// generate session token
 	sessionToken, err := auth.CreateJWT(secret, id)

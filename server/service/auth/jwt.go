@@ -23,7 +23,7 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 		return "", fmt.Errorf("secret was empty when creating JWT")
 	}
 
-	expiration := time.Second * time.Duration(config.Envs.JWTExpirationInSeconds)
+	expiration := time.Second * time.Duration(config.Envs.RefreshExpirationInSeconds)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID":    strconv.Itoa(userID),
 		"issuedAt":  time.Now().Unix(),
@@ -52,15 +52,15 @@ func ProtectedRoute(store types.UserStore, sessionStore types.SessionStore) func
 			_, err := sessionStore.ValidateSessionToken(sessionToken)
 			if err != nil {
 				log.Printf("Couldn't validate user session: %v", err)
-				utils.WriteJSON(w, http.StatusForbidden, err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
 				return
 			}
-			
+
 			// check token from cache is valid
-			token, err := validateToken(sessionToken)
+			token, err := ValidateToken(sessionToken)
 			if err != nil {
 				log.Printf("Couldn't validate JWT token: %v", err)
-				utils.WriteJSON(w, http.StatusForbidden, err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
 				return
 			}
 
@@ -72,7 +72,7 @@ func ProtectedRoute(store types.UserStore, sessionStore types.SessionStore) func
 			user, err := store.GetUserByID(userID)
 			if err != nil {
 				log.Printf("Couldn't get user, error: %v", err)
-				utils.WriteJSON(w, http.StatusForbidden, err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
 				return
 			}
 
@@ -90,7 +90,7 @@ func getTokenFromRequest(req *http.Request) string {
 	return req.Header.Get("Authorization")
 }
 
-func validateToken(token string) (*jwt.Token, error) {
+func ValidateToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
@@ -101,11 +101,11 @@ func validateToken(token string) (*jwt.Token, error) {
 		if expFloat, ok := claims["expiresAt"].(float64); ok {
 			expiresAt := int64(expFloat)
 			if time.Now().Unix() > expiresAt {
-				return nil, fmt.Errorf("Token expired")
+				return token, fmt.Errorf("Token expired")
 			}
 		}
 
-		return []byte(config.Envs.JWTSecret), nil
+		return []byte(config.Envs.SessionSecret), nil
 	})
 }
 
@@ -117,4 +117,3 @@ func GetUserIDFromContext(ctx context.Context) int {
 
 	return userID
 }
-
