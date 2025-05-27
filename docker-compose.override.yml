@@ -14,13 +14,3 @@ services:
     restart: "no"
     networks:
       - jotjournal
-
-  # Wait for migrations to finish
-  jotjournal:
-    profiles: ["dev"]
-    image: jotjournal-backend
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
