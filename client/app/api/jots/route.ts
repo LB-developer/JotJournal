@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchWithAuth } from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config/config";
 
-const baseURL = `${API_BASE_URL}/jots`;
+const baseURL = `${API_BASE_URL}jots`;
 export async function GET(req: NextRequest) {
     const method = "GET";
 

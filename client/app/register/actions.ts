@@ -6,7 +6,7 @@ import { ApiError, ApiSuccess, LoginSuccess } from "@/types/apiTypes";
 const baseURL = API_BASE_URL;
 
 export async function register(
-    _: any,
+    prevState: ApiSuccess | ApiError | undefined,
     formData: FormData,
 ): Promise<ApiSuccess | ApiError> {
     const email = formData.get("email");

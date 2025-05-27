@@ -73,6 +73,7 @@ func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+
 	utils.WriteJSON(w, http.StatusOK, jots)
 }
 

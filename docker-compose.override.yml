@@ -5,17 +5,20 @@ services:
     profiles: ["dev"]
     working_dir: /go/src/app/server/db/migrate
     volumes:
-      - .:/go/src/app        # mount to container
+      - .:/go/src/app # mount to container
     env_file: server/.env
     command: ["go", "run", "main.go", "up"]
     depends_on:
       postgres:
         condition: service_healthy
     restart: "no"
+    networks:
+      - jotjournal
 
   # Wait for migrations to finish
   jotjournal:
     profiles: ["dev"]
+    image: jotjournal-backend
     depends_on:
       migrate:
         condition: service_completed_successfully

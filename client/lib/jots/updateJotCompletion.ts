@@ -9,7 +9,7 @@ export function updateJotCompletion(
     right: number,
     needle: number,
 ) {
-    let mid = left + Math.floor((right - left) / 2);
+    const mid = left + Math.floor((right - left) / 2);
 
     if (haystack[mid].id === needle) {
         // change the current jot

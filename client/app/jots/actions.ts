@@ -2,7 +2,7 @@ import { fetchWithAuth } from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config/config";
 import { JotCollection } from "@/types/jotTypes";
 
-const baseURL = `${API_BASE_URL}/jots`;
+const baseURL = `${API_BASE_URL}jots`;
 export async function getJots(month: string) {
     const params = new URLSearchParams();
     params.set("month", month);

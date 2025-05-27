@@ -8,9 +8,10 @@ RUN go mod download
 COPY server/ ./server/
 
 WORKDIR /app/server/cmd
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/jotjournal main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o /app/jotjournal main.go
 
-FROM public.ecr.aws/docker/library/alpine:latest
+FROM public.ecr.aws/debian/debian:stable
+RUN apt-get update && apt-get install -y
 
 WORKDIR /root/
 COPY --from=backend-builder /app/jotjournal .

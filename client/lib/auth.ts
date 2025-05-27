@@ -9,7 +9,7 @@ export async function fetchWithAuth<T>(
     url: string,
     method: "GET" | "PATCH",
     headers?: Headers,
-    reqBody?: any,
+    reqBody?: unknown,
 ): Promise<T | undefined> {
     const reqHeaders = new Headers();
     if (headers) {
@@ -88,6 +88,7 @@ export async function setSessionToken(token: string): Promise<void> {
         httpOnly: true,
         secure: true,
     });
+    console.log("set new 'sessionToken' for user");
 }
 
 export async function getSessionToken(): Promise<string | undefined> {

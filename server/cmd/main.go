@@ -15,8 +15,8 @@ func main() {
 	}
 
 	defer dbPool.Close()
-	
-	cache, err := session.NewCache()
+
+	cache, err := session.NewValkeyClient()
 	if err != nil {
 		log.Fatal(err)
 	}

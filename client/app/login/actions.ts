@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 const baseURL = API_BASE_URL;
 
 export async function login(
-    prevState: any,
+    prevState: ApiSuccess | ApiError | undefined,
     formData: FormData,
 ): Promise<ApiSuccess | ApiError> {
     const email = formData.get("email");
