@@ -51,7 +51,7 @@ jobs:
       - name: Copy env files and start containers
         run: make docker-dev
 
-      - name: Wait for backend
+      - name: Wait for services
         run: |
             echo "Waiting for backend..."
             for i in {1..15}; do

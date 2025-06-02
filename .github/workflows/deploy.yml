@@ -26,7 +26,7 @@ jobs:
         uses: tj-actions/changed-files@v44
         id: changes
         with:
-          files: INPUT_PATH/**
+          files: ${{ inputs.path }}/**
 
       - name: Debug changed files
         run: |
@@ -36,16 +36,16 @@ jobs:
 
       - name: Skip if no changes
         if: steps.changes.outputs.any_changed == 'false'
-        run: echo "No changes in INPUT_PATH/, skipping deploy."
+        run: echo "No changes in ${{ inputs.path }}/, skipping deploy."
 
       - name: Docker login
         if: steps.changes.outputs.any_changed == 'true'
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
-      - name: Build and push INPUT_SERVICE image
+      - name: Build and push ${{ inputs.service }} image
         if: steps.changes.outputs.any_changed == 'true'
-        working-directory: ./INPUT_PATH
+        working-directory: ./${{ inputs.path }}
         run: |
-          docker build -f ../INPUT_PATH/Dockerfile -t $DOCKER_REPO:INPUT_SERVICE-${IMAGE_VERSION::7} -t $DOCKER_REPO:frontend-latest ..
-          docker push $DOCKER_REPO:INPUT_SERVICE-${IMAGE_VERSION::7}
-          docker push $DOCKER_REPO:INPUT_SERVICE-latest
+          docker build -f ../${{ inputs.path }}/Dockerfile -t $DOCKER_REPO:INPUT_SERVICE-${IMAGE_VERSION::7} -t $DOCKER_REPO:frontend-latest ..
+          docker push $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7}
+          docker push $DOCKER_REPO:${{ inputs.service }}-latest
