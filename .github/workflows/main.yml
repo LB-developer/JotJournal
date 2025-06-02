@@ -92,6 +92,9 @@ jobs:
   deploy-backend:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') && ${{ success()}}
     uses: ./.github/workflows/deploy.yml
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
       path: server
       service: backend
@@ -99,6 +102,9 @@ jobs:
   deploy-frontend:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') && ${{ success()}}
     uses: ./.github/workflows/deploy.yml
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
       path: client
       service: frontend
