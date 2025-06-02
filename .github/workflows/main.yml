@@ -48,24 +48,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Copy env files and start containers
+        run: make docker-dev
 
-      - name: Set up client env variables
-        working-directory: ./client
-        run: cat .env.docker.example >> .env
+      - name: Wait for backend
+        run: |
+            echo "Waiting for backend..."
+            for i in {1..15}; do
+              if curl -s http://localhost:8080/health; then
+                echo "✅ Backend ready"
+                break
+              fi
+              echo "⏳ Backend not ready yet ($i)"
+              sleep 2
+            done
+            echo "Waiting for frontend..."
+            for i in {1..30}; do
+              if curl -s http://localhost:3000 | grep -q "<html"; then
+                echo "✅ Frontend ready"
+                break
+              fi
+              echo "⏳ Frontend not ready yet ($i)"
+              sleep 2
+            done
 
-      - name: Set up sever env variables
-        working-directory: ./server
-        run: cat .env.docker.example >> .env
-
-
-      - name: Start services
-        run: docker compose up -d --build
-
-      - name: Install Playwright + browsers
+      - name: Install Playwright + deps
         working-directory: ./client
         run: |
           npm ci
@@ -79,7 +86,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
-          path: playwright-report/
+          path: client/playwright-report/
           retention-days: 14
 
   deploy-backend:

@@ -30,4 +30,4 @@ dev:
 docker-dev:
 	cp server/.env.docker.example server/.env
 	cp client/.env.docker.example client/.env
-	docker compose --profile dev up --build
+	docker compose --profile dev up --build -d

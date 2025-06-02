@@ -34,8 +34,7 @@ services:
     container_name: jotjournal-frontend
     ports:
       - "3000:3000"
-    environment:
-      - client/.env
+    env_file: client/.env
     networks:
       - jotjournal
 
