@@ -15,9 +15,9 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 
 ## Tech Stack & Architecture
 
-- **Backend:** Go 1.23.2, RESTful API, JWT authentication
-- **DevOps:** GitHub Actions, AWS Codepipeline  
-- **Testing:** Dockertest, Table-driven testing
+- **Backend:** Go 1.23.2, Valkey, RESTful API, JWT authentication,
+- **CI/CD:** GitHub Actions, AWS Lightsail
+- **Testing:** Dockertest, Table-driven testing, Playwright
 
 ---
 
@@ -25,9 +25,10 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 
 - Clean, modular Go API with focus on maintainability  
 - CI/CD pipeline:  
-  - Automated build & testing via GitHub Actions
-  - Production deployment is triggered automatically via AWS CodePipeline when changes are merged to `main`
+  - Automated build & testing of code via GitHub Actions
+  - Automated build & push of Docker images via GitHub Actions
 - Secure JWT-based authentication and password handling  
+- Session backed authorization using Valkey
 - Dockerized for consistent local and cloud deployment  
 - Swagger/OpenAPI documentation for easy API exploration and integration  
 
@@ -35,51 +36,53 @@ This Swagger UI provides a user-friendly interface to explore and test all avail
 
 ## Quick Start
 
-### Local Mode (Go & PostgreSQL)
-Use this if you have Go 1.23+ installed and a local Postgres instance.
+### Local Mode (Go, PostgreSQL & Valkey)
+Use this if you have Go 1.23+, Node.js 20+, and a local PostgreSQL + Valkey setup and want to run locally.
 
 1. Clone the repository:  
        `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
-2. Configure environment variables:  
-       `cp server/.env.local.example server/.env`
-
-3. Set up database:
-       `sudo -u postgres make local-database-setup`
+2. Set up environment variables and local database:  
+       `make setup`
 
 3. Apply database migrations:  
-       `make -C server migrate-up`
+       `make migrate`
 
-4. Start the API server:  
-       `make -C server run`
+4. Start backend, frontend, and Valkey locally:  
+       `make dev`
 
-The server will listen on port 8080 of your localhost and connect to your local database.
+This will:
+- Initialize a postgres database and valkey instance
+- Run migrations automatically
+- Launch the API on port 8080  
+- Launch the frontend on port 3000
 
 ---
 
 ### Container Mode (Docker & Docker Compose)
-Use this if you prefer a containerized setup without installing Go or Postgres.
+Use this if you prefer a containerized setup without installing Go, Node.js, Valkey or PostgreSQL.
 
 1. Clone the repository:  
        `git clone https://github.com/LB-developer/JotJournal.git && cd JotJournal`
 
-2. Configure environment variables:  
-       `cp server/.env.docker.example server/.env`
-
 3. Run everything with one command:  
-       `docker compose --profile dev up --build`
+       `make docker-dev`
 
 This will:
-- Spin up a Postgres container  
+- Spin up Postgres, Valkey, Frontend & Backend containers  
 - Run migrations automatically  
 - Launch the API on port 8080  
+- Launch the frontend on port 3000
 
 ---
 
-### View the API  
-Open in your browser:  
-       `http://localhost:8080/swagger/index.html#/` 
-to explore the interactive Swagger UI and test endpoints.
+### View the App & API
+
+- Frontend:  
+       `http://localhost:3000`
+
+- API (Swagger UI):  
+       `http://localhost:8080/swagger/index.html#/`
 
 ---
 

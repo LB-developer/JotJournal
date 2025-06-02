@@ -61,7 +61,7 @@ type Task struct {
 	Deadline    time.Time `json:"deadline" validate:"required" example:"2006-01-02T15:04:00Z" faker:"-"`
 	Description string    `json:"description" validate:"required" faker:"sentence"`
 	IsCompleted bool      `json:"isCompleted" faker:"-"`
-	UserID      int       `json:"userID" validate:"required" faker:"oneof: 1, 2"`
+	UserID      int64     `json:"userID" validate:"required" faker:"oneof: 1, 2"`
 }
 
 type NewTask struct {
