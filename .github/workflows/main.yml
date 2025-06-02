@@ -90,21 +90,17 @@ jobs:
           retention-days: 14
 
   deploy-backend:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') && ${{ success()}}
+    if: ${{ contains(fromJSON('["push"]'), github.event_name) && github.ref == 'refs/heads/main' && success() }}
     uses: ./.github/workflows/deploy.yml
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
       path: server
       service: backend
+    secrets: inherit
 
   deploy-frontend:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') && ${{ success()}}
+    if: ${{ contains(fromJSON('["push"]'), github.event_name) && github.ref == 'refs/heads/main' && success() }}
     uses: ./.github/workflows/deploy.yml
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
       path: client
       service: frontend
+    secrets: inherit
