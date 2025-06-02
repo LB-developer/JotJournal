@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/lb-developer/jotjournal/config"
 )
 
 func TestValidJWTCreation(t *testing.T) {
@@ -71,10 +72,11 @@ func TestJWTExpirationTime(t *testing.T) {
 
 		issued := time.Duration(issuedAt * float64(time.Second))
 		expires := time.Duration(expiresAt * float64(time.Second))
-		days := ((expires - issued) / 24).Hours()
+		minutes := (expires - issued).Minutes()
+		expirationInMinutes := (time.Second * time.Duration(time.Duration(config.Envs.RefreshExpirationInSeconds))).Minutes()
 
-		if days != 7 {
-			t.Errorf("Issued JWT Token expiration was not 7 days")
+		if minutes != expirationInMinutes {
+			t.Errorf("Issued JWT Token expiration was %v minutes not 10 minutes", minutes)
 		}
 	}
 }

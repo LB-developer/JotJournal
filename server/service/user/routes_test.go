@@ -17,16 +17,28 @@ var payloadAndStatus = map[string]struct {
 	expectedStatus int
 }{
 	"no email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "", Password: "123"},
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "",
+			Password:  "123"},
 		expectedStatus: http.StatusUnprocessableEntity,
 	},
 	"invalid email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "abc", Password: "123"},
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "abc",
+			Password:  "123"},
 		expectedStatus: http.StatusUnprocessableEntity,
 	},
 	"valid email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "valid@gmail.com", Password: "123"},
-		expectedStatus: http.StatusCreated,
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "valid@gmail.com",
+			Password:  "123"},
+		expectedStatus: http.StatusOK,
 	},
 }
 
