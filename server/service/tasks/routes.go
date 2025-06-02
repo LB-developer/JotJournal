@@ -12,8 +12,8 @@ import (
 )
 
 type Handler struct {
-	taskStore types.TaskStore
-	userStore types.UserStore
+	taskStore    types.TaskStore
+	userStore    types.UserStore
 	sessionStore types.SessionStore
 }
 
@@ -117,7 +117,7 @@ func (h *Handler) handleUpdateTask(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	editedTask.UserID = userId
+	editedTask.UserID = int64(userId)
 
 	// validate the edited task payload
 	if err := utils.Validate.Struct(editedTask); err != nil {
