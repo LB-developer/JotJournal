@@ -46,11 +46,13 @@ export async function fetchWithAuth<T>(
             const body = (await res.json()) as T;
             return body;
         } catch (e) {
-            console.warn("Auth check did not pass");
             if (retries >= 2) {
                 console.log(JSON.stringify(e));
                 redirect("/login");
             }
+            console.warn(
+                `Auth check did not pass on attempt: ${retries}, retrying...`,
+            );
         }
     }
 

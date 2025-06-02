@@ -27,14 +27,14 @@ export default function RegisterForm() {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Email
+                            <input
+                                type="email"
+                                name="email"
+                                maxLength={50}
+                                className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                placeholder="your@email.com"
+                            />
                         </label>
-                        <input
-                            type="email"
-                            name="email"
-                            maxLength={50}
-                            className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                            placeholder="your@email.com"
-                        />
                     </div>
                     {state?.type == "error" && (
                         <p className="text-red-500">{state?.error}</p>
@@ -43,38 +43,41 @@ export default function RegisterForm() {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             First Name
+                            <input
+                                id="firstName"
+                                type="text"
+                                name="firstName"
+                                maxLength={15}
+                                className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                placeholder="John"
+                            />
                         </label>
-                        <input
-                            type="text"
-                            name="firstName"
-                            maxLength={15}
-                            className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                            placeholder="John"
-                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Last Name
+                            <input
+                                id="lastName"
+                                type="text"
+                                name="lastName"
+                                maxLength={15}
+                                className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                placeholder="Smith"
+                            />
                         </label>
-                        <input
-                            type="text"
-                            name="lastName"
-                            maxLength={15}
-                            className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                            placeholder="Smith"
-                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Password
+                            <input
+                                id="password-input"
+                                type="password"
+                                name="password"
+                                minLength={4}
+                                className="w-full px-4 py-2 border text-gray-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                placeholder="••••••••"
+                            />
                         </label>
-                        <input
-                            type="password"
-                            name="password"
-                            minLength={4}
-                            className="w-full px-4 py-2 border text-gray-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                            placeholder="••••••••"
-                        />
                     </div>
 
                     <SubmitButton actionText="Register" />
