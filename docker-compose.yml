@@ -42,6 +42,7 @@ services:
   backend:
     build:
       context: .
+      dockerfile: server/Dockerfile
     container_name: jotjournal-backend
     image: jotjournal-backend
     depends_on:
@@ -57,4 +58,3 @@ services:
 
 networks:
   jotjournal:
-    external: true
