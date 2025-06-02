@@ -50,6 +50,33 @@ func main() {
 		log.Fatalf("Seeds failed %v", err)
 	}
 
+	// What user ID
+	var userID int64
+	err = nil
+	idScanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("Add fake tasks for user ID: ")
+
+		idScanner.Scan()
+
+		text := idScanner.Text()
+		if len(text) != 0 {
+			userID, err = strconv.ParseInt(text, 10, 64)
+			if err != nil {
+				fmt.Println("invalid number")
+				continue
+			} else {
+				break
+			}
+		} else {
+			break
+		}
+
+	}
+
+	fmt.Printf("%v", userID)
+
+	// How many tasks
 	var number int64
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -72,14 +99,14 @@ func main() {
 
 	}
 
-	for i := 0; i < int(number); i++ {
+	for range number {
 		var task types.Task
-		createTask(&task)
+		createTask(&task, userID)
 		insertTask(db, task)
 	}
 }
 
-func createTask(task *types.Task) {
+func createTask(task *types.Task, userID int64) {
 	task.Weekly = true
 	task.Monthly = false
 	task.Daily = false
@@ -93,12 +120,14 @@ func createTask(task *types.Task) {
 	if err != nil {
 		log.Fatalf("Couldn't create fake task, error: %v\n", err)
 	}
+
+	task.UserID = userID
 }
 
 func insertTask(db *sql.DB, task types.Task) int {
 	query := `
 	INSERT INTO tasks (monthly, weekly, daily, deadline, description, is_completed, user_id)
-	VALUES ($1, $2, $3, $4, $5, $6, 1)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
 	RETURNING id
 	`
 
@@ -111,6 +140,7 @@ func insertTask(db *sql.DB, task types.Task) int {
 		task.Deadline,
 		task.Description,
 		task.IsCompleted,
+		task.UserID,
 	).Scan(&lastInsertId)
 	if err != nil {
 		panic(err)

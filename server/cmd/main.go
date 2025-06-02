@@ -5,6 +5,7 @@ import (
 
 	"github.com/lb-developer/jotjournal/cmd/api"
 	"github.com/lb-developer/jotjournal/db"
+	"github.com/lb-developer/jotjournal/service/session"
 )
 
 func main() {
@@ -14,9 +15,17 @@ func main() {
 	}
 
 	defer dbPool.Close()
-	server := api.NewAPIServer(":8080", dbPool)
+
+	cache, err := session.NewValkeyClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cache.Close()
+
+	server := api.NewAPIServer(":8080", dbPool, cache)
 	err = server.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }

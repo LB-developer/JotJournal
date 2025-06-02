@@ -84,21 +84,24 @@ func (s *Store) GetUserByID(userId int) (*types.User, error) {
 	return user, nil
 }
 
-func (s *Store) CreateUser(user types.User) error {
+func (s *Store) CreateUser(user types.User) (int, error) {
 	query := `
 	INSERT INTO
 		users
 		(first_name, last_name, email, password)
 	VALUES
 		($1, $2, $3, $4)
+	RETURNING
+		id
 	`
 
-	_, err := s.db.Exec(context.Background(), query, user.FirstName, user.LastName, user.Email, user.Password)
+	var id int
+	err := s.db.QueryRow(context.Background(), query, user.FirstName, user.LastName, user.Email, user.Password).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("failed to acquire connection, err: \n%v", err)
+		return 0, fmt.Errorf("failed to acquire connection, err: \n%v", err)
 	}
 
-	return nil
+	return id, nil
 }
 
 func scanRowIntoUser(rows pgx.Rows) (*types.User, error) {
@@ -118,3 +121,4 @@ func scanRowIntoUser(rows pgx.Rows) (*types.User, error) {
 
 	return user, nil
 }
+

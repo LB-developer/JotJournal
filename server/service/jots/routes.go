@@ -12,20 +12,22 @@ import (
 )
 
 type Handler struct {
-	jotStore  types.JotStore
-	userStore types.UserStore
+	jotStore     types.JotStore
+	userStore    types.UserStore
+	sessionStore types.SessionStore
 }
 
-func NewHandler(jotStore types.JotStore, userStore types.UserStore) *Handler {
+func NewHandler(jotStore types.JotStore, userStore types.UserStore, sessionStore types.SessionStore) *Handler {
 	return &Handler{
-		jotStore:  jotStore,
-		userStore: userStore,
+		jotStore:     jotStore,
+		userStore:    userStore,
+		sessionStore: sessionStore,
 	}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Group(func(r chi.Router) {
-		r.Use(auth.ProtectedRoute(h.userStore))
+		r.Use(auth.ProtectedRoute(h.userStore, h.sessionStore))
 
 		r.Route("/jots", func(r chi.Router) {
 			r.Get("/", h.handleGetJotsByUserID)
@@ -71,6 +73,7 @@ func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+
 	utils.WriteJSON(w, http.StatusOK, jots)
 }
 
@@ -80,7 +83,7 @@ func (h *Handler) handleGetJotsByUserID(w http.ResponseWriter, req *http.Request
 // @Security BearerAuth
 // @Param Authorization header string true "JWT access token for authentication"
 // @Param jot body types.UpdateJotPayload true "jotID and update"
-// @Success 200
+// @Success 204
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 401 {object} types.ErrorResponse
 // @Failure 403 {object} types.ErrorResponse
@@ -104,5 +107,5 @@ func (h *Handler) handleUpdateJotByJotID(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusNoContent, nil)
 }

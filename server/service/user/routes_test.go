@@ -17,22 +17,35 @@ var payloadAndStatus = map[string]struct {
 	expectedStatus int
 }{
 	"no email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "", Password: "123"},
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "",
+			Password:  "123"},
 		expectedStatus: http.StatusUnprocessableEntity,
 	},
 	"invalid email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "abc", Password: "123"},
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "abc",
+			Password:  "123"},
 		expectedStatus: http.StatusUnprocessableEntity,
 	},
 	"valid email": {
-		input:          types.RegisterUserPayload{FirstName: "John", LastName: "Doe", Email: "valid@gmail.com", Password: "123"},
-		expectedStatus: http.StatusCreated,
+		input: types.RegisterUserPayload{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "valid@gmail.com",
+			Password:  "123"},
+		expectedStatus: http.StatusOK,
 	},
 }
 
 func TestUserServiceHandlers(t *testing.T) {
-	mock := &mockUserStore{}
-	handler := NewHandler(mock)
+	mockUserStore := &mockUserStore{}
+	mockSessionStore := &mockSessionStore{}
+	handler := NewHandler(mockUserStore, mockSessionStore)
 
 	for name, test := range payloadAndStatus {
 		t.Run(name, func(t *testing.T) {
@@ -64,6 +77,32 @@ func (m *mockUserStore) GetUserByID(id int) (*types.User, error) {
 	return nil, nil
 }
 
-func (m *mockUserStore) CreateUser(user types.User) error {
-	return nil
+func (m *mockUserStore) CreateUser(user types.User) (int, error) {
+	return 0, nil
+}
+
+type mockSessionStore struct{}
+
+func (m *mockSessionStore) CreateSession(userID int64) (string, error) {
+	return "", nil
+}
+
+func (m *mockSessionStore) ValidateSession(userID int64, refreshToken string) (bool, error) {
+	return true, nil
+}
+
+func (s *mockSessionStore) CacheSessionToken(sessionToken string, sessionID string) (string, error) {
+	return "", nil
+}
+
+func (m *mockSessionStore) ValidateSessionToken(sessionToken string) (string, error) {
+	return "", nil
+}
+
+func (m *mockSessionStore) DestroySession(userID int64, sessionToken string) (bool, error) {
+	return true, nil
+}
+
+func (m *mockSessionStore) ClearSessionFromCache(sessionToken string) (bool, error) {
+	return true, nil
 }

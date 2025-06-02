@@ -1,0 +1,54 @@
+name: Build & Push Images
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_VERSION: ${{ github.sha }}
+      DOCKER_REPO: ${{ secrets.DOCKER_USERNAME }}/jotjournal-prod
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for changes in client/
+        uses: tj-actions/changed-files@v44
+        id: changes
+        with:
+          files: ${{ inputs.path }}/**
+
+      - name: Debug changed files
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changes.outputs.all_changed_files }}"
+          echo "Any changed? ${{ steps.changes.outputs.any_changed }}"
+
+      - name: Skip if no changes
+        if: steps.changes.outputs.any_changed == 'false'
+        run: echo "No changes in ${{ inputs.path }}/, skipping deploy."
+
+      - name: Docker login
+        if: steps.changes.outputs.any_changed == 'true'
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push ${{ inputs.service }} image
+        if: steps.changes.outputs.any_changed == 'true'
+        working-directory: ./${{ inputs.path }}
+        run: |
+          docker build -f ../${{ inputs.path }}/Dockerfile -t $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7} -t $DOCKER_REPO:frontend-latest ..
+          docker push $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7}
+          docker push $DOCKER_REPO:${{ inputs.service }}-latest

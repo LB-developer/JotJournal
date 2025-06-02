@@ -1,27 +1,106 @@
-name: JotJournal 
+name: Build Test Deploy
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-
-  build:
+  backend-build-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23.2'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.2'
 
-    - name: Build
-      working-directory: ./server
-      run: make build
+      - name: Build backend
+        working-directory: ./server
+        run: make build
 
-    - name: Test
-      working-directory: ./server
-      run: make test
+      - name: Test backend
+        working-directory: ./server
+        run: make test
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./client
+        run: npm run build
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy env files and start containers
+        run: make docker-dev
+
+      - name: Wait for services
+        run: |
+            echo "Waiting for backend..."
+            for i in {1..15}; do
+              if curl -s http://localhost:8080/health; then
+                echo "✅ Backend ready"
+                break
+              fi
+              echo "⏳ Backend not ready yet ($i)"
+              sleep 2
+            done
+            echo "Waiting for frontend..."
+            for i in {1..30}; do
+              if curl -s http://localhost:3000 | grep -q "<html"; then
+                echo "✅ Frontend ready"
+                break
+              fi
+              echo "⏳ Frontend not ready yet ($i)"
+              sleep 2
+            done
+
+      - name: Install Playwright + deps
+        working-directory: ./client
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        working-directory: ./client
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: client/playwright-report/
+          retention-days: 14
+
+  deploy-backend:
+    if: ${{ contains(fromJSON('["push"]'), github.event_name) && github.ref == 'refs/heads/main' && success() }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      path: server
+      service: backend
+    secrets: inherit
+
+  deploy-frontend:
+    if: ${{ contains(fromJSON('["push"]'), github.event_name) && github.ref == 'refs/heads/main' && success() }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      path: client
+      service: frontend
+    secrets: inherit

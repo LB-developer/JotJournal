@@ -15,6 +15,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/auth/refresh": {
+            "post": {
+                "description": "Validates the users refresh token and if valid returns a new access token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Renews access tokens",
+                "parameters": [
+                    {
+                        "description": "refresh token",
+                        "name": "RefreshToken",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.RefreshTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/health": {
             "get": {
                 "description": "returns 200 when requested",
@@ -158,7 +204,7 @@ const docTemplate = `{
         },
         "/api/v1/login": {
             "post": {
-                "description": "Authenticates a user from an email and password",
+                "description": "Authenticates a user from an email and password and begins a session",
                 "produces": [
                     "application/json"
                 ],
@@ -181,7 +227,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.JWTToken"
+                            "$ref": "#/definitions/types.SuccessfulLoginResponse"
                         }
                     },
                     "400": {
@@ -500,15 +546,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.JWTToken": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "header.payload.signature"
-                }
-            }
-        },
         "types.Jot": {
             "type": "object",
             "required": [
@@ -582,6 +619,15 @@ const docTemplate = `{
                 }
             }
         },
+        "types.RefreshTokenPayload": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string",
+                    "example": "abc-123-xyz-123"
+                }
+            }
+        },
         "types.RegisterUserPayload": {
             "type": "object",
             "required": [
@@ -606,13 +652,22 @@ const docTemplate = `{
                 }
             }
         },
+        "types.SuccessfulLoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "header.payload.signature"
+                }
+            }
+        },
         "types.Task": {
             "type": "object",
             "required": [
                 "deadline",
                 "description",
                 "id",
-                "userId"
+                "userID"
             ],
             "properties": {
                 "daily": {
@@ -634,7 +689,7 @@ const docTemplate = `{
                 "monthly": {
                     "type": "boolean"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 },
                 "weekly": {

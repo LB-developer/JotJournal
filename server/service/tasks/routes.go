@@ -12,17 +12,18 @@ import (
 )
 
 type Handler struct {
-	taskStore types.TaskStore
-	userStore types.UserStore
+	taskStore    types.TaskStore
+	userStore    types.UserStore
+	sessionStore types.SessionStore
 }
 
-func NewHandler(taskStore types.TaskStore, userStore types.UserStore) *Handler {
-	return &Handler{taskStore: taskStore, userStore: userStore}
+func NewHandler(taskStore types.TaskStore, userStore types.UserStore, sessionStore types.SessionStore) *Handler {
+	return &Handler{taskStore: taskStore, userStore: userStore, sessionStore: sessionStore}
 }
 
 func (h *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Group(func(r chi.Router) {
-		r.Use(auth.ProtectedRoute(h.userStore))
+		r.Use(auth.ProtectedRoute(h.userStore, h.sessionStore))
 
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", h.handleGetTasksByUserId)
@@ -116,7 +117,7 @@ func (h *Handler) handleUpdateTask(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	editedTask.UserID = userId
+	editedTask.UserID = int64(userId)
 
 	// validate the edited task payload
 	if err := utils.Validate.Struct(editedTask); err != nil {

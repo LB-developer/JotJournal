@@ -40,7 +40,7 @@ func main() {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://db/migrate/migrations",
+		"file://migrations",
 		dbName, driver)
 	if err != nil {
 		log.Fatalf("Migrations failed %v", err)

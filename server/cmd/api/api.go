@@ -8,11 +8,14 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lb-developer/jotjournal/docs"
+	"github.com/lb-developer/jotjournal/service/auth"
 	"github.com/lb-developer/jotjournal/service/health"
 	"github.com/lb-developer/jotjournal/service/jots"
+	"github.com/lb-developer/jotjournal/service/session"
 	"github.com/lb-developer/jotjournal/service/tasks"
 	"github.com/lb-developer/jotjournal/service/user"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"github.com/valkey-io/valkey-glide/go/api"
 )
 
 // @title JotJournal API
@@ -24,14 +27,16 @@ import (
 
 // @BasePath /v1
 type APIServer struct {
-	addr string
-	db   *pgxpool.Pool
+	addr  string
+	db    *pgxpool.Pool
+	cache api.GlideClientCommands
 }
 
-func NewAPIServer(address string, db *pgxpool.Pool) *APIServer {
+func NewAPIServer(address string, db *pgxpool.Pool, cache api.GlideClientCommands) *APIServer {
 	return &APIServer{
-		addr: address,
-		db:   db,
+		addr:  address,
+		db:    db,
+		cache: cache,
 	}
 }
 
@@ -50,17 +55,20 @@ func (s *APIServer) Run() error {
 	healthHandler := health.NewHandler()
 	healthHandler.RegisterRoutes(subrouter)
 
+	sessionStore := session.NewStore(s.db, s.cache)
 	userStore := user.NewStore(s.db)
-	userHandler := user.NewHandler(userStore)
-	userHandler.RegisterRoutes(subrouter)
-
 	taskStore := tasks.NewStore(s.db)
-	taskHandler := tasks.NewHandler(taskStore, userStore)
-	taskHandler.RegisterRoutes(subrouter)
-
 	jotStore := jots.NewStore(s.db)
-	jotHandler := jots.NewHandler(jotStore, userStore)
+
+	userHandler := user.NewHandler(userStore, sessionStore)
+	taskHandler := tasks.NewHandler(taskStore, userStore, sessionStore)
+	jotHandler := jots.NewHandler(jotStore, userStore, sessionStore)
+	authHandler := auth.NewHandler(sessionStore)
+
 	jotHandler.RegisterRoutes(subrouter)
+	taskHandler.RegisterRoutes(subrouter)
+	userHandler.RegisterRoutes(subrouter)
+	authHandler.RegisterRoutes(subrouter)
 
 	r.Mount("/api/v1", subrouter)
 

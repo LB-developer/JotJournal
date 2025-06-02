@@ -23,7 +23,7 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 		return "", fmt.Errorf("secret was empty when creating JWT")
 	}
 
-	expiration := time.Second * time.Duration(config.Envs.JWTExpirationInSeconds)
+	expiration := time.Second * time.Duration(config.Envs.RefreshExpirationInSeconds)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID":    strconv.Itoa(userID),
 		"issuedAt":  time.Now().Unix(),
@@ -38,23 +38,33 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 	return tokenString, nil
 }
 
-func ProtectedRoute(store types.UserStore) func(http.Handler) http.Handler {
+func ProtectedRoute(store types.UserStore, sessionStore types.SessionStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			tokenString := getTokenFromRequest(req)
-			if tokenString == "" {
-				log.Printf("Token string was empty")
-				utils.WriteJSON(w, http.StatusUnauthorized, fmt.Errorf("Token string was empty"))
+			sessionToken := getTokenFromRequest(req)
+			if sessionToken == "" {
+				log.Printf("sessionToken was empty")
+				utils.WriteJSON(w, http.StatusUnauthorized, fmt.Errorf("sessionToken was empty"))
 				return
 			}
 
-			token, err := validateToken(tokenString)
+			// check if user has a current valid session
+			_, err := sessionStore.ValidateSessionToken(sessionToken)
+			if err != nil {
+				log.Printf("Couldn't validate user session: %v", err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
+				return
+			}
+
+			// check token from cache is valid
+			token, err := ValidateToken(sessionToken)
 			if err != nil {
 				log.Printf("Couldn't validate JWT token: %v", err)
-				utils.WriteJSON(w, http.StatusForbidden, err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
 				return
 			}
 
+			// extract userID from token
 			claims := token.Claims.(jwt.MapClaims)
 			userIDString := claims["userID"].(string)
 
@@ -62,9 +72,10 @@ func ProtectedRoute(store types.UserStore) func(http.Handler) http.Handler {
 			user, err := store.GetUserByID(userID)
 			if err != nil {
 				log.Printf("Couldn't get user, error: %v", err)
-				utils.WriteJSON(w, http.StatusForbidden, err)
+				utils.WriteJSON(w, http.StatusUnauthorized, err)
 				return
 			}
+
 			// inject userID into context
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, UserKey, user.ID)
@@ -79,12 +90,22 @@ func getTokenFromRequest(req *http.Request) string {
 	return req.Header.Get("Authorization")
 }
 
-func validateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+func ValidateToken(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
-		return []byte(config.Envs.JWTSecret), nil
+
+		claims := t.Claims.(jwt.MapClaims)
+		// has the token expired
+		if expFloat, ok := claims["expiresAt"].(float64); ok {
+			expiresAt := int64(expFloat)
+			if time.Now().Unix() > expiresAt {
+				return token, fmt.Errorf("Token expired")
+			}
+		}
+
+		return []byte(config.Envs.SessionSecret), nil
 	})
 }
 
