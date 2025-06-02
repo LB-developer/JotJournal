@@ -16,8 +16,6 @@ jobs:
     env:
       IMAGE_VERSION: ${{ github.sha }}
       DOCKER_REPO: ${{ secrets.DOCKER_USERNAME }}/jotjournal-prod
-      DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,7 +38,7 @@ jobs:
 
       - name: Docker login
         if: steps.changes.outputs.any_changed == 'true'
-        run: echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Build and push ${{ inputs.service }} image
         if: steps.changes.outputs.any_changed == 'true'
