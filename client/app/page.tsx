@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default async function HomePage() {
-  redirect("/dashboard")
+export default function HomePage() {
+    return (
+        <Button>
+            <Link href="/register">Register</Link>
+        </Button>
+    );
 }

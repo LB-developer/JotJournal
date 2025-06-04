@@ -1,28 +1,23 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
+import { useEstablishUser } from "@/hooks/user";
 import { updateJotCompletion } from "@/lib/jots/updateJotCompletion";
 import { Jot, JotCollection } from "@/types/jotTypes";
-import { redirect } from "next/navigation";
 import { useState } from "react";
+import { Checkbox } from "../ui/checkbox";
 
 interface Props {
     jotCollection: JotCollection;
 }
 
 export default function JotDisplay({ jotCollection }: Props) {
-    const context = useAuth();
     const [jots, setJots] = useState<JotCollection>(jotCollection);
+    useEstablishUser();
 
     const handleUpdateJot = async (
-        e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
         jotToUpdate: Jot,
     ): Promise<void> => {
         e.preventDefault();
-
-        if (!context.user) {
-            console.error("No user found in context, redirecting...");
-            redirect("/login");
-        }
 
         const jotID = jotToUpdate.id;
         const habit = jotToUpdate.habit;
@@ -50,20 +45,22 @@ export default function JotDisplay({ jotCollection }: Props) {
     };
 
     return (
-        <section className="flex flex-row gap-4 p-4">
+        <section className="flex flex-row gap-2 p-4 bg-gray-400">
             {Object.entries(jots).map(([habit, jots]) => (
                 <div key={habit}>
-                    <h4 className="text-sm font-semibold mb-1">{habit}</h4>
-                    <div className="gap-2">
+                    <h4 className="text-sm font-semibold mb-1 pb-2 -rotate-45">
+                        {habit}
+                    </h4>
+                    <div className="flex flex-col">
                         {jots.map((jot) => (
-                            <div
+                            <Checkbox
                                 key={jot.id}
                                 className={`w-5 h-5 rounded-sm border ${
                                     jot.isCompleted
                                         ? "bg-green-500 border-green-700"
                                         : "bg-gray-200 border-gray-400"
                                 }`}
-                                title={jot.date}
+                                title={new Date(jot.date).toDateString()}
                                 onClick={(e) => handleUpdateJot(e, jot)}
                             />
                         ))}

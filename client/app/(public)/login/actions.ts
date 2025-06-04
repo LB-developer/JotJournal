@@ -1,6 +1,13 @@
 "use server";
 
-import { getSessionToken, setSessionToken } from "@/lib/auth";
+import {
+    clearSessionToken,
+    clearUserFromCookies,
+    getSessionToken,
+    getUserFromCookies,
+    setSessionToken,
+    setUserInCookies,
+} from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config/config";
 import { ApiError, ApiSuccess, LoginSuccess } from "@/types/apiTypes";
 import { redirect } from "next/navigation";
@@ -27,6 +34,7 @@ export async function login(
         }
 
         await setSessionToken(json.sessionToken);
+        await setUserInCookies(json.user);
 
         return { type: "success", user: json.user };
     } catch (e) {
@@ -41,10 +49,6 @@ export async function logout(): Promise<void> {
     const sessionToken = await getSessionToken();
 
     try {
-        if (!sessionToken) {
-            throw new Error("sessionToken was empty when attempting to logout");
-        }
-
         const res = await fetch(baseURL + "logout", {
             method: "POST",
             headers: {
@@ -62,5 +66,7 @@ export async function logout(): Promise<void> {
         console.error(e);
     }
 
+    clearUserFromCookies();
+    clearSessionToken();
     redirect("/login");
 }

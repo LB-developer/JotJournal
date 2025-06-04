@@ -1,4 +1,3 @@
-import LogoutButton from "@/components/user/LogoutButton";
 import JotContainer from "./JotContainer";
 import getCurrentMonth from "@/lib/date/getCurrentMonth";
 
@@ -13,7 +12,7 @@ export default async function DashboardPage({
     return (
         <>
             <JotContainer month={month} />
-            <LogoutButton />
+            {/* <LogoutButton /> */}
         </>
     );
 }

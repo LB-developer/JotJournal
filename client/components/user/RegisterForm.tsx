@@ -1,19 +1,29 @@
 "use client";
 
-import { register } from "@/app/register/actions";
-import { redirect } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useEffect, useTransition } from "react";
 import { SubmitButton } from "./SubmitButton";
+import getCurrentMonth from "@/lib/date/getCurrentMonth";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { register } from "@/app/(public)/register/actions";
 
 export default function RegisterForm() {
+    const router = useRouter();
+    const { setUser } = useAuth();
     const [state, registerAction] = useActionState(register, undefined);
+    const [, startTransition] = useTransition();
 
-    if (state?.type == "success") {
-        redirect("/dashboard");
-    }
+    useEffect(() => {
+        if (state?.type === "success") {
+            startTransition(() => {
+                setUser(state.user);
+                router.push(`/dashboard?month=${getCurrentMonth()}`);
+            });
+        }
+    }, [state, setUser, router]);
 
     const handleRedirectToLoginPage = (): void => {
-        redirect("/login");
+        router.push("/login");
     };
 
     return (
