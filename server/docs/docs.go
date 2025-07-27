@@ -38,7 +38,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.SessionTokenResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -142,6 +145,71 @@ const docTemplate = `{
                     }
                 }
             },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a jot with name and date for the authenticated user",
+                "tags": [
+                    "jots"
+                ],
+                "summary": "Creates a new jot for the authenticated user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT access token for authentication",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "name and date",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateJotPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Jot"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "security": [
                     {
@@ -172,8 +240,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK"
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -244,6 +312,46 @@ const docTemplate = `{
                     },
                     "422": {
                         "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/logout": {
+            "post": {
+                "description": "Deletes sessions associated with user in cache and db",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Logs a user out",
+                "parameters": [
+                    {
+                        "description": "Logout input",
+                        "name": "SessionToken",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.LogoutUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/types.ErrorResponse"
                         }
@@ -537,6 +645,28 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "types.CreateJotPayload": {
+            "type": "object",
+            "required": [
+                "month",
+                "name",
+                "year"
+            ],
+            "properties": {
+                "month": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Run"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2025
+                }
+            }
+        },
         "types.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -591,6 +721,15 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "types.LogoutUserPayload": {
+            "type": "object",
+            "properties": {
+                "sessionToken": {
+                    "type": "string",
+                    "example": "header.payload.signature"
                 }
             }
         },
@@ -652,12 +791,24 @@ const docTemplate = `{
                 }
             }
         },
+        "types.SessionTokenResponse": {
+            "type": "object",
+            "properties": {
+                "sessionToken": {
+                    "type": "string",
+                    "example": "header.payload.signature"
+                }
+            }
+        },
         "types.SuccessfulLoginResponse": {
             "type": "object",
             "properties": {
-                "accessToken": {
+                "sessionToken": {
                     "type": "string",
                     "example": "header.payload.signature"
+                },
+                "user": {
+                    "$ref": "#/definitions/types.UserResponse"
                 }
             }
         },
@@ -712,6 +863,23 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "jotID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.UserResponse": {
+            "type": "object",
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
                     "type": "string"
                 }
             }

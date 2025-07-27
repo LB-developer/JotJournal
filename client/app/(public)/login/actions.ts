@@ -4,7 +4,6 @@ import {
     clearSessionToken,
     clearUserFromCookies,
     getSessionToken,
-    getUserFromCookies,
     setSessionToken,
     setUserInCookies,
 } from "@/lib/auth";
@@ -15,7 +14,7 @@ import { redirect } from "next/navigation";
 const baseURL = API_BASE_URL;
 
 export async function login(
-    prevState: ApiSuccess | ApiError | undefined,
+    _: ApiSuccess | ApiError | undefined,
     formData: FormData,
 ): Promise<ApiSuccess | ApiError> {
     const email = formData.get("email");
@@ -53,7 +52,7 @@ export async function logout(): Promise<void> {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: sessionToken,
+                Authorization: `Bearer ${sessionToken}`,
             },
         });
 

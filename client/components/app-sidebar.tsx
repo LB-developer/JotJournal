@@ -26,7 +26,6 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { redirect } from "next/navigation";
 
 // This is sample data.
 const data = {

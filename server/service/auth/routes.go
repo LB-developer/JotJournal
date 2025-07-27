@@ -31,7 +31,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 // @Accepts json
 // @Produce json
 // @Param RefreshToken body types.RefreshTokenPayload true "refresh token"
-// @Success 200 {object} types.AccessTokenResponse
+// @Success 200 {object} types.SessionTokenResponse
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 401 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse

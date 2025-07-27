@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import SidebarLayout from "@/components/SidebarLayout";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function ProtectedLayout({
@@ -11,7 +12,7 @@ export default function ProtectedLayout({
             <AppSidebar />
             <main>
                 <SidebarTrigger />
-                {children}
+                <SidebarLayout>{children}</SidebarLayout>
             </main>
         </SidebarProvider>
     );

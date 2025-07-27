@@ -32,6 +32,7 @@ func (h *Handler) RegisterRoutes(router *chi.Mux) {
 		r.Route("/jots", func(r chi.Router) {
 			r.Get("/", h.handleGetJotsByUserID)
 			r.Patch("/", h.handleUpdateJotByJotID)
+			r.Post("/", h.handleCreateJot)
 		})
 	})
 }
@@ -108,4 +109,38 @@ func (h *Handler) handleUpdateJotByJotID(w http.ResponseWriter, req *http.Reques
 	}
 
 	utils.WriteJSON(w, http.StatusNoContent, nil)
+}
+
+// @Summary Creates a new jot for the authenticated user
+// @Description Creates a jot with name and date for the authenticated user
+// @Tags jots
+// @Security BearerAuth
+// @Param Authorization header string true "JWT access token for authentication"
+// @Param payload body types.CreateJotPayload true "name and date"
+// @Success 201 {object} []types.Jot
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 401 {object} types.ErrorResponse
+// @Failure 403 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
+// @Router /api/v1/jots [post]
+func (h *Handler) handleCreateJot(w http.ResponseWriter, req *http.Request) {
+	userID := auth.GetUserIDFromContext(req.Context())
+	if userID == -1 {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("couldn't find user id"))
+		return
+	}
+
+	var payload types.CreateJotPayload
+	if err := utils.ParseJSON(req, &payload); err != nil {
+		utils.WriteError(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	jots, err := h.jotStore.CreateJotsForMonth(int64(userID), payload.Name, payload.Year, payload.Month)
+	if err != nil || jots == nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, jots)
 }

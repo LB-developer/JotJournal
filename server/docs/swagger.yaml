@@ -1,4 +1,20 @@
 definitions:
+  types.CreateJotPayload:
+    properties:
+      month:
+        example: 4
+        type: integer
+      name:
+        example: Run
+        type: string
+      year:
+        example: 2025
+        type: integer
+    required:
+    - month
+    - name
+    - year
+    type: object
   types.ErrorResponse:
     properties:
       error:
@@ -37,6 +53,12 @@ definitions:
     required:
     - email
     - password
+    type: object
+  types.LogoutUserPayload:
+    properties:
+      sessionToken:
+        example: header.payload.signature
+        type: string
     type: object
   types.NewTask:
     properties:
@@ -78,11 +100,19 @@ definitions:
     - firstName
     - password
     type: object
-  types.SuccessfulLoginResponse:
+  types.SessionTokenResponse:
     properties:
-      accessToken:
+      sessionToken:
         example: header.payload.signature
         type: string
+    type: object
+  types.SuccessfulLoginResponse:
+    properties:
+      sessionToken:
+        example: header.payload.signature
+        type: string
+      user:
+        $ref: '#/definitions/types.UserResponse'
     type: object
   types.Task:
     properties:
@@ -119,6 +149,17 @@ definitions:
       isCompleted:
         type: boolean
       jotID:
+        type: integer
+    type: object
+  types.UserResponse:
+    properties:
+      ID:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
         type: string
     type: object
 info:
@@ -140,6 +181,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/types.SessionTokenResponse'
         "400":
           description: Bad Request
           schema:
@@ -225,8 +268,8 @@ paths:
         schema:
           $ref: '#/definitions/types.UpdateJotPayload'
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -246,6 +289,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Updates jot for the authenticated user
+      tags:
+      - jots
+    post:
+      description: Creates a jot with name and date for the authenticated user
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: name and date
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateJotPayload'
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/types.Jot'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Creates a new jot for the authenticated user
       tags:
       - jots
   /api/v1/login:
@@ -282,6 +367,32 @@ paths:
           schema:
             $ref: '#/definitions/types.ErrorResponse'
       summary: Logs a user in and authenticates them with a JWT access token
+      tags:
+      - User
+  /api/v1/logout:
+    post:
+      description: Deletes sessions associated with user in cache and db
+      parameters:
+      - description: Logout input
+        in: body
+        name: SessionToken
+        required: true
+        schema:
+          $ref: '#/definitions/types.LogoutUserPayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Logs a user out
       tags:
       - User
   /api/v1/register:

@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useTransition } from "react";
 import { SubmitButton } from "./SubmitButton";
-import getCurrentMonth from "@/lib/date/getCurrentMonth";
+import { getCurrentMonth } from "@/lib/date/getCurrentMonth";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { login } from "@/app/(public)/login/actions";
