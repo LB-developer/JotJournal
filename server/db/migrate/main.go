@@ -51,9 +51,9 @@ func main() {
 	}
 
 	// if cmd == "down" {
-	// 	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
-	// 		log.Fatalf("failed to apply down.sql files to db, err: %v", err)
-	// 	}
+	// if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+	// 	log.Fatalf("failed to apply down.sql files to db, err: %v", err)
+	// }
 	// }
 
 	version, dirty, err := m.Version()

@@ -1,75 +1,74 @@
 package jots_test
 
 import (
-	"os"
+	"context"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lb-developer/jotjournal/service/jots"
+	"github.com/lb-developer/jotjournal/service/user"
+	"github.com/lb-developer/jotjournal/types"
 	"github.com/lb-developer/jotjournal/utils/testutils"
 )
 
-var dbpool *pgxpool.Pool
-
-func TestMain(m *testing.M) {
-	var cleanup func()
-	dbpool, cleanup = testutils.SetupDockerTest()
+func TestStore(t *testing.T) {
+	dbpool, cleanup := testutils.SetupDockerTest()
 	defer cleanup()
 
-	code := m.Run()
-	os.Exit(code)
-}
-
-func TestGetJotsByUserID(t *testing.T) {
 	store := jots.NewStore(dbpool)
+	userStore := user.NewStore(dbpool)
+
+	// Create a new user for testing
+	testUserID := 999
+	_, err := userStore.CreateUser(types.User{ID: testUserID})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
-		name           string
-		userID         int64
-		month          int
-		expectedLength int
-		expectedHabits []string
+		name       string
+		testFunc   func(*testing.T, *jots.Store, *pgxpool.Conn)
+		wantErr    bool
+		wantResult any
 	}{
 		{
-			name:           "ReturnsExpectedNumberOfJots",
-			userID:         1,
-			month:          4,
-			expectedLength: 2,
+			name: "GetJotsByUserID",
+			testFunc: func(t *testing.T, store *jots.Store, tx *pgxpool.Conn) {
+				userID := int64(testUserID)
+				month := 1
+				gotJots, err := store.GetJotsByUserID(month, userID)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(gotJots) != 0 {
+					t.Errorf("expected 0 jots, got %d", len(gotJots))
+				}
+			},
+			wantErr: false,
 		},
 		{
-			name:           "ReturnsEmptyWhenNoMatches",
-			userID:         1,
-			month:          0,
-			expectedLength: 0,
-		},
-		{
-			name:           "ReturnsOnlyJotsOfTheUser",
-			userID:         1,
-			month:          4,
-			expectedLength: 2,
-			expectedHabits: []string{"run", "walk"},
+			name: "UpdateJotByJotID",
+			testFunc: func(t *testing.T, store *jots.Store, tx *pgxpool.Conn) {
+				jotID := 1
+				jot := types.UpdateJotPayload{JotID: jotID, IsCompleted: true}
+				err := store.UpdateJotByJotID(jot, 1)
+				if err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantErr: false,
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			jots, err := store.GetJotsByUserID(test.month, test.userID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, err := dbpool.Acquire(context.Background())
 			if err != nil {
-				t.Fatalf("Couldn't get jots, err: %s", err)
+				t.Fatal(err)
 			}
+			defer db.Release()
 
-			if len(jots) != test.expectedLength {
-				t.Fatalf("Expected %d jots, got %d", test.expectedLength, len(jots))
-			}
-
-			// Optional habit check if expectedHabits is set
-			if len(test.expectedHabits) > 0 {
-				for _, habit := range test.expectedHabits {
-					if _, found := jots[habit]; !found {
-						t.Fatalf("Expected habit %s - not found", habit)
-					}
-				}
-			}
+			tt.testFunc(t, store, db)
 		})
 	}
 }

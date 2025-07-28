@@ -1,7 +1,13 @@
-import { JotCollection, UpdateJotPayload } from "@/types/jotTypes";
+import {
+    CreateJotPayload,
+    Jot,
+    JotCollection,
+    UpdateJotPayload,
+} from "@/types/jotTypes";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithAuth } from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config/config";
+import { ApiError } from "@/types/apiTypes";
 
 const baseURL = `${API_BASE_URL}jots`;
 export async function GET(req: NextRequest) {
@@ -56,6 +62,47 @@ export async function PATCH(req: NextRequest) {
         // update the specified jot
         await fetchWithAuth<undefined>(baseURL, method, headers, body);
         return new NextResponse(undefined, { status: 204 });
+    } catch (e) {
+        console.error(e);
+        return new NextResponse(undefined, { status: 500 });
+    }
+}
+
+export async function POST(
+    req: NextRequest,
+): Promise<NextResponse<Jot[] | ApiError | undefined>> {
+    const method = "POST";
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    // TODO: revalidateTag("tags here");
+
+    let body: CreateJotPayload;
+    try {
+        body = await req.json();
+    } catch {
+        return NextResponse.json(
+            { type: "error", error: "Invalid JSON body" },
+            { status: 400 },
+        );
+    }
+    const { name, month, year } = body;
+    if (!name || !month || !year) {
+        return NextResponse.json(
+            { type: "error", error: "Missing or invalid fields" },
+            { status: 400 },
+        );
+    }
+
+    try {
+        // create the specified jot
+        const res = await fetchWithAuth<Jot[] | undefined>(
+            baseURL,
+            method,
+            headers,
+            body,
+        );
+        return NextResponse.json(res, { status: 201 });
     } catch (e) {
         console.error(e);
         return new NextResponse(undefined, { status: 500 });

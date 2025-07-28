@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -218,7 +219,8 @@ func (h *Handler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleLogoutUser(w http.ResponseWriter, r *http.Request) {
 	// unmarshal user logout payload
 	// extract userID from token
-	sessionToken := r.Header.Get("Authorization")
+	sessionTokenBearer := r.Header.Get("Authorization")
+	sessionToken := strings.TrimPrefix(sessionTokenBearer, "Bearer ")
 	userID := auth.GetUserIDFromContext(r.Context())
 	success, err := h.sessionStore.DestroySession(int64(userID), sessionToken)
 

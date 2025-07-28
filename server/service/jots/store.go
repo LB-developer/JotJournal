@@ -3,9 +3,11 @@ package jots
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lb-developer/jotjournal/types"
+	"github.com/lb-developer/jotjournal/utils"
 )
 
 type Store struct {
@@ -76,4 +78,72 @@ func (s *Store) UpdateJotByJotID(jot types.UpdateJotPayload, userID int64) error
 	}
 
 	return nil
+}
+
+func (s *Store) CreateJotsForMonth(userID int64, habit string, year int, month int) ([]types.Jot, error) {
+	// does habit already exist for date given
+	var exists bool
+	checkQuery := `
+		SELECT EXISTS (
+			SELECT 1 FROM jots
+			WHERE user_id = $1 AND habit = $2
+			AND date >= $3 AND date < $4
+		)`
+
+	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 1, 0) // first of next month
+	ctx := context.Background()
+
+	err := s.db.QueryRow(context.Background(), checkQuery, userID, habit, start, end).Scan(&exists)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, fmt.Errorf("habit '%s' already exists for %d-%02d", habit, year, month)
+	}
+
+	// habit does not currently exist
+	tx, err := s.db.Begin(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	days := utils.DaysIn(month, year)
+	query := "INSERT INTO jots (user_id, habit, date) VALUES "
+	args := []any{}
+	argIndex := 1
+
+	for i := 1; i <= days; i++ {
+		date := time.Date(year, time.Month(month), i, 0, 0, 0, 0, time.UTC)
+		query += fmt.Sprintf("($%d, $%d, $%d),", argIndex, argIndex+1, argIndex+2)
+		args = append(args, userID, habit, date)
+		argIndex += 3
+	}
+	query = query[:len(query)-1] // remove trailing comma
+	query += "RETURNING id, habit, date, is_completed"
+
+	rows, err := tx.Query(ctx, query, args...)
+
+	var jots []types.Jot
+	for rows.Next() {
+		var jot types.Jot
+		err := rows.Scan(&jot.ID, &jot.Habit, &jot.Date, &jot.IsCompleted)
+		if err != nil {
+			tx.Rollback(ctx)
+			return nil, err
+		}
+		jots = append(jots, jot)
+	}
+
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		tx.Rollback(ctx)
+		return nil, fmt.Errorf("commit error: %v", err)
+	}
+
+	return jots, nil
 }

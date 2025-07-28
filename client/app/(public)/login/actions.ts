@@ -1,6 +1,12 @@
 "use server";
 
-import { getSessionToken, setSessionToken } from "@/lib/auth";
+import {
+    clearSessionToken,
+    clearUserFromCookies,
+    getSessionToken,
+    setSessionToken,
+    setUserInCookies,
+} from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/config/config";
 import { ApiError, ApiSuccess, LoginSuccess } from "@/types/apiTypes";
 import { redirect } from "next/navigation";
@@ -8,7 +14,7 @@ import { redirect } from "next/navigation";
 const baseURL = API_BASE_URL;
 
 export async function login(
-    prevState: ApiSuccess | ApiError | undefined,
+    _: ApiSuccess | ApiError | undefined,
     formData: FormData,
 ): Promise<ApiSuccess | ApiError> {
     const email = formData.get("email");
@@ -27,6 +33,7 @@ export async function login(
         }
 
         await setSessionToken(json.sessionToken);
+        await setUserInCookies(json.user);
 
         return { type: "success", user: json.user };
     } catch (e) {
@@ -41,15 +48,11 @@ export async function logout(): Promise<void> {
     const sessionToken = await getSessionToken();
 
     try {
-        if (!sessionToken) {
-            throw new Error("sessionToken was empty when attempting to logout");
-        }
-
         const res = await fetch(baseURL + "logout", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: sessionToken,
+                Authorization: `Bearer ${sessionToken}`,
             },
         });
 
@@ -62,5 +65,7 @@ export async function logout(): Promise<void> {
         console.error(e);
     }
 
+    clearUserFromCookies();
+    clearSessionToken();
     redirect("/login");
 }

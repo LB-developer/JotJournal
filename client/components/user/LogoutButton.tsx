@@ -1,5 +1,5 @@
 "use client";
-import { logout } from "@/app/login/actions";
+import { logout } from "@/app/(public)/login/actions";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SubmitButton() {

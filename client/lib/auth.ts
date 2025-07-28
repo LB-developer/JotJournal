@@ -1,13 +1,14 @@
 "server-only";
 import { API_BASE_URL } from "./config/config";
 import { ApiError, SessionToken } from "@/types/apiTypes";
+import { User } from "@/types/userTypes";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const baseURL = API_BASE_URL;
 export async function fetchWithAuth<T>(
     url: string,
-    method: "GET" | "PATCH",
+    method: "GET" | "PATCH" | "POST",
     headers?: Headers,
     reqBody?: unknown,
 ): Promise<T | undefined> {
@@ -17,6 +18,8 @@ export async function fetchWithAuth<T>(
             reqHeaders.set(key, val);
         }
     }
+
+    console.log(reqBody);
 
     let sessionToken = await getSessionToken();
     for (let retries = 0; retries < 3; retries++) {
@@ -83,12 +86,12 @@ export default async function refreshSessionToken(): Promise<string> {
 
     return data.sessionToken;
 }
-
 export async function setSessionToken(token: string): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.set("sessionToken", token, {
         httpOnly: true,
         secure: true,
+        sameSite: true,
     });
     console.log("set new 'sessionToken' for user");
 }
@@ -102,4 +105,25 @@ export async function getSessionToken(): Promise<string | undefined> {
 export async function clearSessionToken(): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.delete("sessionToken");
+}
+
+export async function setUserInCookies(user: User): Promise<void> {
+    const userAsJSON = JSON.stringify(user);
+    const cookieStore = await cookies();
+    cookieStore.set("user", userAsJSON, {
+        httpOnly: true,
+        secure: true,
+        sameSite: true,
+    });
+}
+
+export async function getUserFromCookies(): Promise<string | undefined> {
+    const cookieStore = await cookies();
+    const user = cookieStore.get("user")?.value;
+    return user;
+}
+
+export async function clearUserFromCookies(): Promise<void> {
+    const cookieStore = await cookies();
+    cookieStore.delete("user");
 }
