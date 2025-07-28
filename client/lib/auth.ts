@@ -19,8 +19,6 @@ export async function fetchWithAuth<T>(
         }
     }
 
-    console.log(reqBody);
-
     let sessionToken = await getSessionToken();
     for (let retries = 0; retries < 3; retries++) {
         if (!sessionToken) {

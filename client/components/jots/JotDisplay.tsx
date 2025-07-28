@@ -69,7 +69,6 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         const newJot: Jot[] = await res.json();
 
         console.log(newJot);
-
         const habit = newJot[0].habit;
 
         setJots({
@@ -148,31 +147,4 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             ))}
         </section>
     );
-
-    // return (
-    //     <section className="flex flex-row gap-2 p-4 ">
-    //         {Object.entries(jots).map(([habit, jots]) => (
-    //             <div className="flex flex-col" key={habit}>
-    //                 <input
-    //                     className="text-sm font-semibold mb-1 pb-2 w-8 overflow-visible -rotate-45"
-    //                     value={habit}
-    //                 ></input>
-    //                 <div className="flex flex-col">
-    //                     {jots.map((jot) => (
-    //                         <Checkbox
-    //                             key={jot.id}
-    //                             className={`w-5 h-5 rounded-sm border ${
-    //                                 jot.isCompleted
-    //                                     ? "bg-green-500 border-green-700"
-    //                                     : "bg-gray-200 border-gray-400"
-    //                             }`}
-    //                             title={new Date(jot.date).toDateString()}
-    //                             onClick={(e) => handleUpdateJot(e, jot)}
-    //                         />
-    //                     ))}
-    //                 </div>
-    //             </div>
-    //         ))}
-    //     </section>
-    // );
 }
