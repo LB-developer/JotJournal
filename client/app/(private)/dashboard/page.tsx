@@ -35,7 +35,7 @@ export default async function DashboardPage({
             <div className="flex flex-row justify-center align-center w-100 md:col-span-10 md:row-span-1 justify-self-center">
                 <NextJotButton monthNumberAsString={month} forward={false} />
                 <h1 className="underline text-5xl">
-                    {`${months[Number(month)]} ${year}`}
+                    {`${months[Number(month) - 1]} ${year}`}
                 </h1>
                 <NextJotButton monthNumberAsString={month} forward={true} />
             </div>
@@ -44,7 +44,7 @@ export default async function DashboardPage({
             </div>
 
             <div className="md:col-span-10 order-2 md:row-span-4 md:order-2">
-                <TaskContainer month={month} year={year} />
+                <TaskContainer month={month} />
             </div>
         </div>
     );

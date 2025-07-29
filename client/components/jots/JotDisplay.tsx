@@ -18,8 +18,6 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     const daysInMonth = getDaysInMonth(Number(year), Number(month));
     useEstablishUser();
 
-    const today = new Date();
-
     const handleUpdateJot = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
         jotToUpdate: Jot,
@@ -68,7 +66,6 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
 
         const newJot: Jot[] = await res.json();
 
-        console.log(newJot);
         const habit = newJot[0].habit;
 
         setJots({
@@ -89,8 +86,8 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                 <CreateJotDialogue submit={handleSubmit} />
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                     const date = new Date(
-                        today.getFullYear(),
-                        today.getMonth(),
+                        Number(year),
+                        Number(month) - 1,
                         i + 1,
                     );
                     const letter = date.toLocaleDateString("en-NZ", {
