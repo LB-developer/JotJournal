@@ -17,6 +17,7 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     const [jots, setJots] = useState<JotCollection>(jotCollection);
     const daysInMonth = getDaysInMonth(Number(year), Number(month));
     useEstablishUser();
+    const todayAsDate = new Date();
 
     const handleUpdateJot = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -125,6 +126,10 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                         const jot = jots.find(
                             (j) => new Date(j.date).getDate() === dayIndex + 1,
                         );
+
+                        const futureDate =
+                            jot && new Date(jot?.date) > todayAsDate;
+
                         return jot ? (
                             <Checkbox
                                 key={jot.id}
@@ -132,9 +137,14 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                                     jot.isCompleted
                                         ? "bg-green-500 border-green-700"
                                         : "bg-gray-200 border-gray-400"
-                                }`}
+                                } 
+                                ${futureDate && "opacity-50"}`}
                                 title={new Date(jot.date).toLocaleDateString()}
                                 onClick={(e) => handleUpdateJot(e, jot)}
+                                disabled={
+                                    // disable if date is in the future
+                                    futureDate
+                                }
                             />
                         ) : (
                             <div key={`empty-${habit}-${dayIndex}`} />
