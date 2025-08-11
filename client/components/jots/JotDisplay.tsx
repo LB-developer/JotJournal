@@ -41,6 +41,7 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         await fetch(`/api/jots/`, {
             method: "PATCH",
             body: JSON.stringify({ jotID, isCompleted: changedCompletion }),
+        const headers = new Headers();
         });
 
         // update jot locally
