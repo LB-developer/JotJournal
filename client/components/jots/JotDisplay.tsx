@@ -1,7 +1,7 @@
 "use client";
 import { useEstablishUser } from "@/hooks/user";
 import { updateJotCompletion } from "@/lib/jots/updateJotCompletion";
-import { Jot, JotCollection } from "@/types/jotTypes";
+import { Jot, JotActionBody, JotCollection } from "@/types/jotTypes";
 import { FormEvent, Fragment, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { CreateJotDialogue } from "./CreateJotDialogue";
@@ -17,20 +17,19 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     const [jots, setJots] = useState<JotCollection>(jotCollection);
     const daysInMonth = getDaysInMonth(Number(year), Number(month));
     useEstablishUser();
+    const todayAsDate = new Date();
 
-    const today = new Date();
-
-    const handleUpdateJot = async (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-        jotToUpdate: Jot,
+    const handleJotAction = async (
+        e: React.MouseEvent<HTMLButtonElement | HTMLHeadingElement, MouseEvent>,
+        jot: Jot,
+        action: "update" | "delete",
     ): Promise<void> => {
         e.preventDefault();
 
-        const jotID = jotToUpdate.id;
-        const habit = jotToUpdate.habit;
-        const changedCompletion = !jotToUpdate.isCompleted;
+        const jotID = jot.id;
+        const habit = jot.habit;
 
-        // TODO: create tag for caching
+        // TODO: create/delete tag for caching
         //   structure: ["id-habit1", "id-habit2", etc...] for as many habits that are in jots
         //
         // const tags: string[] = []
@@ -38,16 +37,50 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         //   tags.push(`tag-${context.user.ID}-${key}`);
         // }
 
-        // update jot in db
-        await fetch(`/api/jots/`, {
-            method: "PATCH",
-            body: JSON.stringify({ jotID, isCompleted: changedCompletion }),
+        let method: "PATCH" | "DELETE";
+        let body: JotActionBody | null;
+        let query = "";
+        const headers = new Headers();
+        headers.set("Content-Type", "application/json");
+
+        switch (action) {
+            case "update":
+                method = "PATCH";
+                const changedCompletion = !jot.isCompleted;
+                body = { jotID, isCompleted: changedCompletion };
+                break;
+            case "delete":
+                method = "DELETE";
+                body = null;
+                query = `?habit=${habit}&month=${month}&year=${year}`;
+                break;
+            default:
+                throw new Error(`Invalid action: ${action}`);
+        }
+
+        // update/delete jot in db
+        await fetch(`/api/jots` + query, {
+            method,
+            headers: headers,
+            body: JSON.stringify(body),
         });
 
-        // update jot locally
+        // update/delete jot locally
         const updatedJots = { ...jots };
-        const length = updatedJots[habit].length - 1;
-        updateJotCompletion(updatedJots[habit], 0, length, jotID);
+
+        if (action === "delete") {
+            delete updatedJots[habit];
+        } else {
+            const length = updatedJots[habit].length - 1;
+            const startingLeftNumber = 0;
+            updateJotCompletion(
+                updatedJots[habit],
+                startingLeftNumber,
+                length,
+                jotID,
+            );
+        }
+
         setJots(updatedJots);
     };
 
@@ -67,8 +100,6 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         });
 
         const newJot: Jot[] = await res.json();
-
-        console.log(newJot);
 
         const habit = newJot[0].habit;
 
@@ -90,8 +121,8 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                 <CreateJotDialogue submit={handleSubmit} />
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                     const date = new Date(
-                        today.getFullYear(),
-                        today.getMonth(),
+                        Number(year),
+                        Number(month) - 1,
                         i + 1,
                     );
                     const letter = date.toLocaleDateString("en-NZ", {
@@ -123,12 +154,21 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             {/* Rows 3+: Habit Rows */}
             {Object.entries(jots).map(([habit, jots]) => (
                 <Fragment key={habit}>
-                    <h2 className="whitespace-nowrap self-center">{habit}</h2>
+                    <h2
+                        className="whitespace-nowrap self-center"
+                        onClick={(e) => handleJotAction(e, jots[0], "delete")}
+                    >
+                        {habit}
+                    </h2>
 
                     {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
                         const jot = jots.find(
                             (j) => new Date(j.date).getDate() === dayIndex + 1,
                         );
+
+                        const futureDate =
+                            jot && new Date(jot?.date) > todayAsDate;
+
                         return jot ? (
                             <Checkbox
                                 key={jot.id}
@@ -136,9 +176,16 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                                     jot.isCompleted
                                         ? "bg-green-500 border-green-700"
                                         : "bg-gray-200 border-gray-400"
-                                }`}
+                                } 
+                                ${futureDate && "opacity-50"}`}
                                 title={new Date(jot.date).toLocaleDateString()}
-                                onClick={(e) => handleUpdateJot(e, jot)}
+                                onClick={(e) =>
+                                    handleJotAction(e, jot, "update")
+                                }
+                                disabled={
+                                    // disable if date is in the future
+                                    futureDate
+                                }
                             />
                         ) : (
                             <div key={`empty-${habit}-${dayIndex}`} />
@@ -148,31 +195,4 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             ))}
         </section>
     );
-
-    // return (
-    //     <section className="flex flex-row gap-2 p-4 ">
-    //         {Object.entries(jots).map(([habit, jots]) => (
-    //             <div className="flex flex-col" key={habit}>
-    //                 <input
-    //                     className="text-sm font-semibold mb-1 pb-2 w-8 overflow-visible -rotate-45"
-    //                     value={habit}
-    //                 ></input>
-    //                 <div className="flex flex-col">
-    //                     {jots.map((jot) => (
-    //                         <Checkbox
-    //                             key={jot.id}
-    //                             className={`w-5 h-5 rounded-sm border ${
-    //                                 jot.isCompleted
-    //                                     ? "bg-green-500 border-green-700"
-    //                                     : "bg-gray-200 border-gray-400"
-    //                             }`}
-    //                             title={new Date(jot.date).toDateString()}
-    //                             onClick={(e) => handleUpdateJot(e, jot)}
-    //                         />
-    //                     ))}
-    //                 </div>
-    //             </div>
-    //         ))}
-    //     </section>
-    // );
 }

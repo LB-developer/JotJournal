@@ -208,18 +208,72 @@ paths:
       tags:
       - health
   /api/v1/jots:
-    get:
-      description: Retrieves all jots associated with the authenticated user based
-        on their ID for the given month
+    delete:
+      description: Deletes all jots associated with the authenticated user based on
+        the habit for the given month and year
       parameters:
       - description: JWT access token for authentication
         in: header
         name: Authorization
         required: true
         type: string
-      - description: jot search by month
+      - description: habit to delete
+        in: query
+        name: habit
+        required: true
+        type: string
+      - description: month of specified habit to delete
         in: query
         name: month
+        required: true
+        type: string
+      - description: year of specified habit to delete
+        in: query
+        name: year
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete jots for a partificular month/year by habit for the authenticated
+        user
+      tags:
+      - jots
+    get:
+      description: Retrieves all jots associated with the authenticated user based
+        on their ID for the given month and year
+      parameters:
+      - description: JWT access token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: month to get jots for
+        in: query
+        name: month
+        required: true
+        type: string
+      - description: year to get jots for
+        in: query
+        name: year
         required: true
         type: string
       produces:

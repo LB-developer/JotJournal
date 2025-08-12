@@ -11,7 +11,7 @@ export default async function JotContainer({
     month: string;
     year: string;
 }) {
-    const jots = await getJots(month);
+    const jots = await getJots(month, year);
 
     return (
         <section className="flex flex-row">

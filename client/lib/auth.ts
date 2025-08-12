@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 const baseURL = API_BASE_URL;
 export async function fetchWithAuth<T>(
     url: string,
-    method: "GET" | "PATCH" | "POST",
+    method: "GET" | "PATCH" | "POST" | "DELETE",
     headers?: Headers,
     reqBody?: unknown,
 ): Promise<T | undefined> {
@@ -18,8 +18,6 @@ export async function fetchWithAuth<T>(
             reqHeaders.set(key, val);
         }
     }
-
-    console.log(reqBody);
 
     let sessionToken = await getSessionToken();
     for (let retries = 0; retries < 3; retries++) {

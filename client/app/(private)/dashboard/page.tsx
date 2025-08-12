@@ -2,8 +2,9 @@ import { getCurrentMonth } from "@/lib/date/getCurrentMonth";
 import JotContainer from "./JotContainer";
 import TaskContainer from "./TaskContainer";
 import { getCurrentYear } from "@/lib/date/getCurrentYear";
+import NextJotButton from "@/components/jots/NextJotButton";
 
-const days = [
+const months = [
     "January",
     "February",
     "March",
@@ -29,17 +30,21 @@ export default async function DashboardPage({
 
     return (
         <div
-            className={`grid grid-cols-1 md:grid-cols-10 md:grid-rows-10 gap-4 p-4`}
+            className={`grid grid-cols-1 md:grid-cols-10 md:grid-rows-10 gap-4 p-4 `}
         >
-            <h1 className="text-center underline md:col-span-10 md:row-span-1 text-5xl">
-                {`${days[Number(month)]}${year}`}
-            </h1>
+            <div className="flex flex-row justify-center align-center w-100 md:col-span-10 md:row-span-1 justify-self-center">
+                <NextJotButton monthNumberAsString={month} forward={false} />
+                <h1 className="underline text-5xl">
+                    {`${months[Number(month) - 1]} ${year}`}
+                </h1>
+                <NextJotButton monthNumberAsString={month} forward={true} />
+            </div>
             <div className="md:col-span-10 md:row-span-9 order-1 md:order-1">
                 <JotContainer month={month} year={year} />
             </div>
 
             <div className="md:col-span-10 order-2 md:row-span-4 md:order-2">
-                <TaskContainer month={month} year={year} />
+                <TaskContainer month={month} />
             </div>
         </div>
     );

@@ -3,14 +3,7 @@ import { DataTable } from "@/components/ui/table";
 import { getTasks } from "../tasks/actions";
 import { typeColumns } from "@/types/taskTypes";
 
-export default async function TaskContainer({
-    month,
-    year,
-}: {
-    month: string;
-    year: string;
-}) {
-    console.log(year);
+export default async function TaskContainer({ month }: { month: string }) {
     const tasks = await getTasks(month);
     tasks?.forEach((task) => {
         const today = new Date();
