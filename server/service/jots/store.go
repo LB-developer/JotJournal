@@ -18,7 +18,7 @@ func NewStore(db *pgxpool.Pool) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetJotsByUserID(month int, userID int64) (types.Jots, error) {
+func (s *Store) GetJotsByUserID(month int, year int, userID int64) (types.Jots, error) {
 	query := `
 	SELECT id, habit, date, is_completed 
 	FROM
@@ -27,11 +27,13 @@ func (s *Store) GetJotsByUserID(month int, userID int64) (types.Jots, error) {
 		user_id = $1
 	AND 
 		EXTRACT(MONTH FROM jots."date") = $2
+	AND
+		EXTRACT(YEAR FROM jots."date") = $3
 	ORDER BY
 		date
 	`
 
-	rows, err := s.db.Query(context.Background(), query, userID, month)
+	rows, err := s.db.Query(context.Background(), query, userID, month, year)
 	if err != nil {
 		return types.Jots{}, err
 	}
@@ -146,4 +148,32 @@ func (s *Store) CreateJotsForMonth(userID int64, habit string, year int, month i
 	}
 
 	return jots, nil
+}
+
+func (s *Store) DeleteJotsByHabit(habit string, month int, year int, userID int64) error {
+	query := `
+	DELETE
+	FROM
+		jots
+	WHERE
+		user_id = $1
+	AND 
+		habit = $2
+	AND
+		EXTRACT(MONTH FROM jots."date") = $3
+	AND
+        EXTRACT(YEAR FROM jots."date") = $4
+	`
+
+	tag, err := s.db.Exec(context.Background(), query, userID, habit, month, year)
+	if err != nil {
+		fmt.Println(err)
+		return fmt.Errorf("Couldn't delete jots: %s", err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No jots to delete")
+	}
+
+	return nil
 }

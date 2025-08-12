@@ -36,7 +36,8 @@ func TestStore(t *testing.T) {
 			testFunc: func(t *testing.T, store *jots.Store, tx *pgxpool.Conn) {
 				userID := int64(testUserID)
 				month := 1
-				gotJots, err := store.GetJotsByUserID(month, userID)
+				year := 2025
+				gotJots, err := store.GetJotsByUserID(month, year, userID)
 				if err != nil {
 					t.Fatal(err)
 				}

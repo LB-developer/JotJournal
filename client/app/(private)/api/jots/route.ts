@@ -108,3 +108,39 @@ export async function POST(
         return new NextResponse(undefined, { status: 500 });
     }
 }
+
+export async function DELETE(
+    req: NextRequest,
+): Promise<NextResponse<ApiError | undefined>> {
+    const method = "DELETE";
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    const habit = req.nextUrl.searchParams.get("habit");
+    const month = req.nextUrl.searchParams.get("month");
+    const year = req.nextUrl.searchParams.get("year");
+
+    headers.set("habit", habit!);
+    headers.set("month", month!);
+    headers.set("year", year!);
+
+    console.log("headers", headers);
+
+    if (!habit || !month || !year) {
+        return NextResponse.json(
+            { type: "error", error: "Missing or invalid fields" },
+            { status: 400 },
+        );
+    }
+
+    // TODO: revalidateTag("tags here");
+
+    try {
+        // delete the specified habit
+        const res = await fetchWithAuth<undefined>(baseURL, method, headers);
+        return NextResponse.json(res, { status: 200 });
+    } catch (e) {
+        console.error(e);
+        return new NextResponse(undefined, { status: 500 });
+    }
+}

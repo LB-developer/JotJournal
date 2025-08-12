@@ -106,9 +106,10 @@ type (
 
 type (
 	JotStore interface {
-		GetJotsByUserID(month int, userID int64) (Jots, error)
+		GetJotsByUserID(month int, year int, userID int64) (Jots, error)
 		UpdateJotByJotID(jot UpdateJotPayload, userID int64) error
 		CreateJotsForMonth(userID int64, habit string, year int, month int) ([]Jot, error)
+		DeleteJotsByHabit(habit string, month int, year int, userID int64) error
 	}
 
 	Jots map[string][]Jot
@@ -124,6 +125,11 @@ type (
 	}
 	CreateJotPayload struct {
 		Name  string `json:"name" validate:"required" example:"Run"`
+		Month int    `json:"month" validate:"required" example:"04"`
+		Year  int    `json:"year" validate:"required" example:"2025"`
+	}
+	DeleteJotPayload struct {
+		Habit string `json:"habit" validate:"required" example:"workout"`
 		Month int    `json:"month" validate:"required" example:"04"`
 		Year  int    `json:"year" validate:"required" example:"2025"`
 	}

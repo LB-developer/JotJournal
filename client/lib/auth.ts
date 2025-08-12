@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 const baseURL = API_BASE_URL;
 export async function fetchWithAuth<T>(
     url: string,
-    method: "GET" | "PATCH" | "POST",
+    method: "GET" | "PATCH" | "POST" | "DELETE",
     headers?: Headers,
     reqBody?: unknown,
 ): Promise<T | undefined> {

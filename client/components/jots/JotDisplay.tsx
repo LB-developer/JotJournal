@@ -1,7 +1,7 @@
 "use client";
 import { useEstablishUser } from "@/hooks/user";
 import { updateJotCompletion } from "@/lib/jots/updateJotCompletion";
-import { Jot, JotCollection } from "@/types/jotTypes";
+import { Jot, JotActionBody, JotCollection } from "@/types/jotTypes";
 import { FormEvent, Fragment, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { CreateJotDialogue } from "./CreateJotDialogue";
@@ -19,17 +19,17 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     useEstablishUser();
     const todayAsDate = new Date();
 
-    const handleUpdateJot = async (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-        jotToUpdate: Jot,
+    const handleJotAction = async (
+        e: React.MouseEvent<HTMLButtonElement | HTMLHeadingElement, MouseEvent>,
+        jot: Jot,
+        action: "update" | "delete",
     ): Promise<void> => {
         e.preventDefault();
 
-        const jotID = jotToUpdate.id;
-        const habit = jotToUpdate.habit;
-        const changedCompletion = !jotToUpdate.isCompleted;
+        const jotID = jot.id;
+        const habit = jot.habit;
 
-        // TODO: create tag for caching
+        // TODO: create/delete tag for caching
         //   structure: ["id-habit1", "id-habit2", etc...] for as many habits that are in jots
         //
         // const tags: string[] = []
@@ -37,17 +37,50 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         //   tags.push(`tag-${context.user.ID}-${key}`);
         // }
 
-        // update jot in db
-        await fetch(`/api/jots/`, {
-            method: "PATCH",
-            body: JSON.stringify({ jotID, isCompleted: changedCompletion }),
+        let method: "PATCH" | "DELETE";
+        let body: JotActionBody | null;
+        let query = "";
         const headers = new Headers();
+        headers.set("Content-Type", "application/json");
+
+        switch (action) {
+            case "update":
+                method = "PATCH";
+                const changedCompletion = !jot.isCompleted;
+                body = { jotID, isCompleted: changedCompletion };
+                break;
+            case "delete":
+                method = "DELETE";
+                body = null;
+                query = `?habit=${habit}&month=${month}&year=${year}`;
+                break;
+            default:
+                throw new Error(`Invalid action: ${action}`);
+        }
+
+        // update/delete jot in db
+        await fetch(`/api/jots` + query, {
+            method,
+            headers: headers,
+            body: JSON.stringify(body),
         });
 
-        // update jot locally
+        // update/delete jot locally
         const updatedJots = { ...jots };
-        const length = updatedJots[habit].length - 1;
-        updateJotCompletion(updatedJots[habit], 0, length, jotID);
+
+        if (action === "delete") {
+            delete updatedJots[habit];
+        } else {
+            const length = updatedJots[habit].length - 1;
+            const startingLeftNumber = 0;
+            updateJotCompletion(
+                updatedJots[habit],
+                startingLeftNumber,
+                length,
+                jotID,
+            );
+        }
+
         setJots(updatedJots);
     };
 
@@ -121,7 +154,12 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             {/* Rows 3+: Habit Rows */}
             {Object.entries(jots).map(([habit, jots]) => (
                 <Fragment key={habit}>
-                    <h2 className="whitespace-nowrap self-center">{habit}</h2>
+                    <h2
+                        className="whitespace-nowrap self-center"
+                        onClick={(e) => handleJotAction(e, jots[0], "delete")}
+                    >
+                        {habit}
+                    </h2>
 
                     {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
                         const jot = jots.find(
@@ -141,7 +179,9 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                                 } 
                                 ${futureDate && "opacity-50"}`}
                                 title={new Date(jot.date).toLocaleDateString()}
-                                onClick={(e) => handleUpdateJot(e, jot)}
+                                onClick={(e) =>
+                                    handleJotAction(e, jot, "update")
+                                }
                                 disabled={
                                     // disable if date is in the future
                                     futureDate

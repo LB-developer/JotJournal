@@ -85,7 +85,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all jots associated with the authenticated user based on their ID for the given month",
+                "description": "Retrieves all jots associated with the authenticated user based on their ID for the given month and year",
                 "produces": [
                     "application/json"
                 ],
@@ -103,8 +103,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "jot search by month",
+                        "description": "month to get jots for",
                         "name": "month",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "year to get jots for",
+                        "name": "year",
                         "in": "query",
                         "required": true
                     }
@@ -183,6 +190,77 @@ const docTemplate = `{
                                 "$ref": "#/definitions/types.Jot"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes all jots associated with the authenticated user based on the habit for the given month and year",
+                "tags": [
+                    "jots"
+                ],
+                "summary": "Delete jots for a partificular month/year by habit for the authenticated user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT access token for authentication",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "habit to delete",
+                        "name": "habit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "month of specified habit to delete",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "year of specified habit to delete",
+                        "name": "year",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
