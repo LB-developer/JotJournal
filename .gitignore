@@ -1,0 +1,12 @@
+# artifacts
+artifacts/*
+
+# tmp
+tmp/
+
+# secrets
+.secrets
+
+# dumps
+dump.*
+
