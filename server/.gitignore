@@ -24,5 +24,14 @@ go.work.sum
 # env file
 .env
 
+# secrets file
+.secrets
+
+# air
+.air*
+
+# tmp
+tmp/*
+
 bin/*
 */bin
