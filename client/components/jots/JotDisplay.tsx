@@ -6,6 +6,7 @@ import { FormEvent, Fragment, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { CreateJotDialogue } from "./CreateJotDialogue";
 import getDaysInMonth from "@/lib/date/daysInMonth";
+import { DeleteJotDialogue } from "./DeleteJotDialogue";
 
 interface Props {
     jotCollection: JotCollection;
@@ -20,7 +21,7 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     const todayAsDate = new Date();
 
     const handleJotAction = async (
-        e: React.MouseEvent<HTMLButtonElement | HTMLHeadingElement, MouseEvent>,
+        e: React.MouseEvent<HTMLButtonElement | SVGSVGElement, MouseEvent>,
         jot: Jot,
         action: "update" | "delete",
     ): Promise<void> => {
@@ -154,13 +155,7 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             {/* Rows 3+: Habit Rows */}
             {Object.entries(jots).map(([habit, jots]) => (
                 <Fragment key={habit}>
-                    <h2
-                        className="whitespace-nowrap self-center"
-                        onClick={(e) => handleJotAction(e, jots[0], "delete")}
-                    >
-                        {habit}
-                    </h2>
-
+                    <DeleteJotDialogue jot={jots[0]} submit={handleJotAction} />
                     {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
                         const jot = jots.find(
                             (j) => new Date(j.date).getDate() === dayIndex + 1,
