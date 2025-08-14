@@ -2,7 +2,7 @@
 import { useEstablishUser } from "@/hooks/user";
 import { updateJotCompletion } from "@/lib/jots/updateJotCompletion";
 import { Jot, JotActionBody, JotCollection } from "@/types/jotTypes";
-import { FormEvent, Fragment, useState } from "react";
+import { FormEvent, Fragment, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { CreateJotDialogue } from "./CreateJotDialogue";
 import getDaysInMonth from "@/lib/date/daysInMonth";
@@ -19,6 +19,10 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
     const daysInMonth = getDaysInMonth(Number(year), Number(month));
     useEstablishUser();
     const todayAsDate = new Date();
+
+    useEffect(() => {
+        setJots(jotCollection);
+    }, [jotCollection, month, year]);
 
     const handleJotAction = async (
         e: React.MouseEvent<HTMLButtonElement | SVGSVGElement, MouseEvent>,
