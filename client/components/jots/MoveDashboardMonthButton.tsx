@@ -14,8 +14,8 @@ export default function MoveDashboardMonthButton({
     direction,
 }: Props) {
     const handleMoveToNextJot = (month: string, year: string) => {
-        let currentMonth = Number(month);
-        let currentYear = Number(year);
+        const currentMonth = Number(month);
+        const currentYear = Number(year);
 
         let newMonth: number;
         let newYear: number;
