@@ -34,14 +34,6 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
         const jotID = jot.id;
         const habit = jot.habit;
 
-        // TODO: create/delete tag for caching
-        //   structure: ["id-habit1", "id-habit2", etc...] for as many habits that are in jots
-        //
-        // const tags: string[] = []
-        // for (const key of Object.keys(jots)) {
-        //   tags.push(`tag-${context.user.ID}-${key}`);
-        // }
-
         let method: "PATCH" | "DELETE";
         let body: JotActionBody | null;
         let query = "";
