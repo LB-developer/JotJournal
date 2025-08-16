@@ -33,13 +33,22 @@ export default async function DashboardPage({
         <div
             className={`grid grid-cols-1 md:grid-cols-10 md:grid-rows-10 gap-4 p-4 `}
         >
-            <div className="flex flex-row justify-center align-center w-100 md:col-span-10 md:row-span-1 justify-self-center">
+            <div
+                className="flex flex-row 
+                justify-center items-center 
+                w-100 
+                md:col-span-10 md:row-span-1 
+                justify-self-center"
+            >
                 <MoveDashboardMonthButton
                     monthNumberAsString={month}
                     yearNumberAsString={year}
                     direction="prev"
                 />
-                <h1 className="underline text-5xl">{`${activeMonth} ${year}`}</h1>
+                <h1
+                    className="underline text-5xl"
+                    data-testid="date-header"
+                >{`${activeMonth} ${year}`}</h1>
                 <MoveDashboardMonthButton
                     monthNumberAsString={month}
                     yearNumberAsString={year}

@@ -85,11 +85,12 @@ export default async function refreshSessionToken(): Promise<string> {
     return data.sessionToken;
 }
 export async function setSessionToken(token: string): Promise<void> {
+    const isProduction = process.env.NODE_ENV === "production";
     const cookieStore = await cookies();
     cookieStore.set("sessionToken", token, {
         httpOnly: true,
-        secure: true,
-        sameSite: true,
+        secure: isProduction,
+        sameSite: isProduction ? "strict" : "lax",
     });
     console.log("set new 'sessionToken' for user");
 }
@@ -106,12 +107,13 @@ export async function clearSessionToken(): Promise<void> {
 }
 
 export async function setUserInCookies(user: User): Promise<void> {
+    const isProduction = process.env.NODE_ENV === "production";
     const userAsJSON = JSON.stringify(user);
     const cookieStore = await cookies();
     cookieStore.set("user", userAsJSON, {
         httpOnly: true,
-        secure: true,
-        sameSite: true,
+        secure: isProduction,
+        sameSite: isProduction ? "strict" : "lax",
     });
 }
 

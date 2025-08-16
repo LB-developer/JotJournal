@@ -24,11 +24,12 @@ interface Props {
 export function DeleteJotDialogue({ jot, submit }: Props) {
     return (
         <Dialog>
-            <div className="flex flex-row align-center max-h-4">
+            <div className="flex flex-row max-h-4">
                 <DialogTrigger asChild>
                     <Button
                         variant={"ghost"}
                         className="whitespace-nowrap self-center"
+                        data-testid={`delete-${jot.habit}-button`}
                     >
                         <XIcon />
                     </Button>
@@ -47,12 +48,14 @@ export function DeleteJotDialogue({ jot, submit }: Props) {
                     <DialogClose asChild>
                         <Button variant="outline">Cancel</Button>
                     </DialogClose>
-                    <Button
-                        variant="outline"
-                        onClick={(e) => submit(e, jot, "delete")}
-                    >
-                        Delete
-                    </Button>
+                    <DialogClose asChild>
+                        <Button
+                            variant="outline"
+                            onClick={(e) => submit(e, jot, "delete")}
+                        >
+                            Delete
+                        </Button>
+                    </DialogClose>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
