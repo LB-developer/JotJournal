@@ -29,12 +29,16 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: client/Dockerfile
-    container_name: jotjournal-frontend
-    ports:
-      - "3000:3000"
+      context: ./client
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    ports: ["3000:3000"]
     env_file: client/.env
+    volumes:
+      - type: bind
+        source: ./client
+        target: /app
+      - /app/node_modules      # keep deps in container
     networks:
       - jotjournal
 
@@ -57,3 +61,7 @@ services:
 
 networks:
   jotjournal:
+
+volumes: 
+  next-cache: {} 
+

@@ -47,6 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Playwright + deps
+        working-directory: ./client
+        run: |
+          npm ci
+          npx playwright install --with-deps
 
       - name: Copy env files and start containers
         run: make docker-dev
@@ -72,11 +83,6 @@ jobs:
               sleep 2
             done
 
-      - name: Install Playwright + deps
-        working-directory: ./client
-        run: |
-          npm ci
-          npx playwright install --with-deps
 
       - name: Run Playwright tests
         working-directory: ./client

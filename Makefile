@@ -25,6 +25,12 @@ dev:
 	@echo "Starting backend and frontend in dev mode..."
 	make valkey-start & make backend & make frontend
 
+e2e-serve:
+	npx concurrently -k -s first \
+	  "valkey-server --daemonize no" \
+	  "make -C server run" \
+	  "cd client && npm run dev"
+
 # === Docker ===
 
 docker-dev:

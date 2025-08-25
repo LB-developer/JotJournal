@@ -24,6 +24,7 @@ export function CreateJotDialogue({ submit }: Props) {
                 <Button
                     variant="outline"
                     className="pt-0 pb-0 hover:bg-red-700"
+                    data-testid="create-jot-button"
                 >
                     +
                 </Button>
@@ -46,6 +47,7 @@ export function CreateJotDialogue({ submit }: Props) {
                                 name="name"
                                 placeholder="run 2km"
                                 maxLength={10}
+                                data-testid="jot-name-input"
                             />
                         </div>
                     </div>
@@ -53,7 +55,9 @@ export function CreateJotDialogue({ submit }: Props) {
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Add</Button>
+                        <DialogClose asChild>
+                            <Button type="submit">Add</Button>
+                        </DialogClose>
                     </DialogFooter>
                 </form>
             </DialogContent>
