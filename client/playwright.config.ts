@@ -32,12 +32,14 @@ export default defineConfig({
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: "on-first-retry",
     },
-    webServer: {
-        command: "make -C .. e2e-serve",
-        url: "http://localhost:3000",
-        reuseExistingServer: true,
-        timeout: 120000,
-    },
+    // Web Server for local testing
+    //
+    // webServer: {
+    //     command: "make -C .. e2e-serve",
+    //     url: "http://localhost:3000",
+    //     reuseExistingServer: true,
+    //     timeout: 120000,
+    // },
 
     globalSetup: "./tests/auth.setup.ts",
     /* Configure projects for major browsers */

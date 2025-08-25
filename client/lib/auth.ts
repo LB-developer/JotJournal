@@ -5,7 +5,6 @@ import { User } from "@/types/userTypes";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const baseURL = API_BASE_URL;
 export async function fetchWithAuth<T>(
     url: string,
     method: "GET" | "PATCH" | "POST" | "DELETE",
@@ -66,7 +65,7 @@ export default async function refreshSessionToken(): Promise<string> {
         redirect("/login");
     }
 
-    const res = await fetch(baseURL + "refresh", {
+    const res = await fetch(API_BASE_URL + "refresh", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
