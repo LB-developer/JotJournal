@@ -124,8 +124,6 @@ export async function DELETE(
     headers.set("month", month!);
     headers.set("year", year!);
 
-    console.log("headers", headers);
-
     if (!habit || !month || !year) {
         return NextResponse.json(
             { type: "error", error: "Missing or invalid fields" },

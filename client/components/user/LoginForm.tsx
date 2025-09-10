@@ -6,6 +6,7 @@ import { getCurrentMonth } from "@/lib/date/getCurrentMonth";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { login } from "@/app/(public)/login/actions";
+import { getCurrentYear } from "@/lib/date/getCurrentYear";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -17,7 +18,9 @@ export default function LoginForm() {
         if (state?.type === "success") {
             startTransition(() => {
                 setUser(state.user);
-                router.push(`/dashboard?month=${getCurrentMonth()}`);
+                router.push(
+                    `/dashboard?month=${getCurrentMonth()}&year=${getCurrentYear()}`,
+                );
             });
         }
     }, [state, setUser, router]);
