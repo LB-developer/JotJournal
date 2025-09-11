@@ -6,7 +6,7 @@ import { FormEvent, Fragment, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { CreateJotDialogue } from "./CreateJotDialogue";
 import getDaysInMonth from "@/lib/date/daysInMonth";
-import { DeleteJotDialogue } from "./DeleteJotDialogue";
+import { HabitTitleWithDeleteDialogue } from "./DeleteJotDialogue";
 
 interface Props {
     jotCollection: JotCollection;
@@ -108,7 +108,7 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
 
     return (
         <section
-            className="grid w-full gap-1 p-4 text-sm"
+            className="grid w-full gap-1 py-4 text-sm overflow-auto"
             style={{
                 gridTemplateColumns: `auto repeat(${daysInMonth}, 1fr)`,
             }}
@@ -151,7 +151,10 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
             {/* Rows 3+: Habit Rows */}
             {Object.entries(jots).map(([habit, jots]) => (
                 <Fragment key={habit}>
-                    <DeleteJotDialogue jot={jots[0]} submit={handleJotAction} />
+                    <HabitTitleWithDeleteDialogue
+                        jot={jots[0]}
+                        submit={handleJotAction}
+                    />
                     {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
                         const jot = jots.find(
                             (j) => new Date(j.date).getDate() === dayIndex + 1,
@@ -163,12 +166,12 @@ export default function JotDisplay({ jotCollection, month, year }: Props) {
                         return jot ? (
                             <Checkbox
                                 key={jot.id}
-                                className={`aspect-square w-full min-w-4 h-full border-red-700 ${
+                                className={`aspect-square w-full min-w-8 h-full mx-auto my-auto ${
                                     jot.isCompleted
                                         ? "bg-green-500 border-green-700"
                                         : "bg-gray-200 border-gray-400"
                                 } 
-                                ${futureDate && "opacity-50"}`}
+                                ${futureDate && "opacity-80"}`}
                                 title={new Date(jot.date).toLocaleDateString()}
                                 onClick={(e) =>
                                     handleJotAction(e, jot, "update")

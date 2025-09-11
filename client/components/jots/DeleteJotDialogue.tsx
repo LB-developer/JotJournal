@@ -21,10 +21,10 @@ interface Props {
     ) => Promise<void>;
 }
 
-export function DeleteJotDialogue({ jot, submit }: Props) {
+export function HabitTitleWithDeleteDialogue({ jot, submit }: Props) {
     return (
         <Dialog>
-            <div className="flex flex-row max-h-4">
+            <div className="flex items-center">
                 <DialogTrigger asChild>
                     <Button
                         variant={"ghost"}
@@ -34,7 +34,7 @@ export function DeleteJotDialogue({ jot, submit }: Props) {
                         <XIcon />
                     </Button>
                 </DialogTrigger>
-                <h3 className="self-center">{jot.habit}</h3>
+                <h3 className="self-center ">{jot.habit}</h3>
             </div>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
