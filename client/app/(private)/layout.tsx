@@ -10,7 +10,7 @@ export default function ProtectedLayout({
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main>
+            <main className="w-screen">
                 <SidebarTrigger />
                 <SidebarLayout>{children}</SidebarLayout>
             </main>
