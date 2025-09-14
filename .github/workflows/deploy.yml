@@ -49,6 +49,6 @@ jobs:
         if: steps.changes.outputs.any_changed == 'true'
         working-directory: ./${{ inputs.path }}
         run: |
-          docker build -f ../${{ inputs.path }}/Dockerfile -t $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7} -t $DOCKER_REPO:${{ inputs.service }}-latest ..
+          docker build -f ../${{ inputs.path }}/Dockerfile.prod -t $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7} -t $DOCKER_REPO:${{ inputs.service }}-latest ..
           docker push $DOCKER_REPO:${{ inputs.service }}-${IMAGE_VERSION::7}
           docker push $DOCKER_REPO:${{ inputs.service }}-latest
