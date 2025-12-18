@@ -2,16 +2,6 @@
 
 JotJournal’s core goal is to provide a lightweight, no-nonsense way to annotate and track habits ("jots") without unnecessary complexity or distractions. This focus on minimalism addresses a common pain point in habit tracking; many apps overcomplicate what should be effortless.
 
----
-
-## Live API & Documentation
-
-The API is currently deployed and accessible online. Interactive Swagger documentation is available at:  
-https://jotjournal.cloud/swagger/index.html#
-
-This Swagger UI provides a user-friendly interface to explore and test all available endpoints.
-
----
 
 ## Tech Stack & Architecture
 
